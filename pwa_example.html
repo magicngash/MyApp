@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator PWA</title>
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkNhbGN1bGF0b3IgUFdBIiwKICAic2hvcnRfbmFtZSI6ICJDYWxjdWxhdG9yIiwKICAiZGVzY3JpcHRpb24iOiAiQSBzaW1wbGUgY2FsY3VsYXRvciBhcHAiLAogICJzdGFydF91cmwiOiAiLi8iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxYTFhMWEiLAogICJ0aGVtZV9jb2xvciI6ICIjNDI4NWY0IiwKICAib3JpZW50YXRpb24iOiAicG9ydHJhaXQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUIzYVdSMGFEMGlNVEk0SWlCb1pXbG5hSFE5SWpFeU9DSWdkbWxsZDBKdmVEMGlNQ0F3SURFeU9DQXlPRGdpSUdacGJHdzlJaU0wTWpnMVpqUWlJSGh0Ykc1elBTSm9kSFJ3T2k4dmQzZDNMbmN6TG05eVp5OHlNREF3TDNOMlp5SStQSEpsWTNRZ2VEMGlNalFpSUhrOUlqSTBJaUIzYVdSMGFEMGlPREFpSUdobGFXZG9kRDBpT0RBaUlISjRQU0k0SWlCbWFXeHNQU0lqTXpBME56VTNJaTgrUEhSbGVIUWdlRDBpTmpRaUlIazlJalk0SWlCbWFXNTBMV1poYldsc2VUMGlRWEpwWVd3aUlHWnZiblF0YzJsNlpUMGlNVGNpSUdacGJHdzlJaU5tWm1abVppSStLemo4TDNSbGVIUStQQzl6ZG1jKyIsCiAgICAgICJzaXplcyI6ICIxMjh4MTI4IiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0sCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCM2FXUjBhRDBpTlRFeUlpQm9aV2xuYUhROUlqVXhNaUlnZG1sbGQwSnZlRDBpTUNBd0lEVXhNaUExTVRJaUlHWnBiR3c5SWlNME1qZzFaalFpSUhodGJHNXpQU0pvZEhSd09pOHZkM2QzTG5jekxtOXlaeTh5TURBd0wzTjJaeUkrUEhKbFkzUWdlRDBpT1RZaUlIazlJams0SWlCM2FXUjBhRDBpTXpJd0lpQm9aV2xuYUhROUlqTXlNQ0lnY25nOUlqRTJJaUJtYVd4c1BTSWpNekEwTnpVM0lpOCtQSFJsZUhRZ2VEMGlNalUySWlCNVBTSTFNVEFpSUdadmJuUXRabUZ0YVd4NVBTSkJjbWxoYkNJZ1ptOXVkQzF6YVhwbFBTSTJOQ0lnWm1sc2JEMGlJMlptWm1abUlqNStQQzlsZUhRK1BDOXpkbWMrIiwKICAgICAgInNaWVMiOiAiNTEyeDUxMiIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiCiAgICB9CiAgXQp9">
+    <meta name="theme-color" content="#4285f4">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .display {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 2.5rem;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: right;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.2;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn.operator {
+            background: rgba(255, 165, 0, 0.6);
+        }
+
+        .btn.operator:hover {
+            background: rgba(255, 165, 0, 0.8);
+        }
+
+        .btn.equals {
+            background: rgba(76, 175, 80, 0.6);
+        }
+
+        .btn.equals:hover {
+            background: rgba(76, 175, 80, 0.8);
+        }
+
+        .btn.clear {
+            background: rgba(244, 67, 54, 0.6);
+        }
+
+        .btn.clear:hover {
+            background: rgba(244, 67, 54, 0.8);
+        }
+
+        .btn.zero {
+            grid-column: span 2;
+        }
+
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .install-btn {
+            background: #4285f4;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        @media (max-width: 400px) {
+            .calculator {
+                padding: 20px;
+            }
+            
+            .display {
+                font-size: 2rem;
+                padding: 15px;
+            }
+            
+            .btn {
+                font-size: 1.3rem;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+        <div class="buttons">
+            <button class="btn clear" onclick="clearDisplay()">C</button>
+            <button class="btn clear" onclick="clearEntry()">CE</button>
+            <button class="btn operator" onclick="inputOperator('/')">/</button>
+            <button class="btn operator" onclick="inputOperator('*')">×</button>
+            
+            <button class="btn" onclick="inputNumber('7')">7</button>
+            <button class="btn" onclick="inputNumber('8')">8</button>
+            <button class="btn" onclick="inputNumber('9')">9</button>
+            <button class="btn operator" onclick="inputOperator('-')">-</button>
+            
+            <button class="btn" onclick="inputNumber('4')">4</button>
+            <button class="btn" onclick="inputNumber('5')">5</button>
+            <button class="btn" onclick="inputNumber('6')">6</button>
+            <button class="btn operator" onclick="inputOperator('+')">+</button>
+            
+            <button class="btn" onclick="inputNumber('1')">1</button>
+            <button class="btn" onclick="inputNumber('2')">2</button>
+            <button class="btn" onclick="inputNumber('3')">3</button>
+            <button class="btn equals" onclick="calculate()" rowspan="2">=</button>
+            
+            <button class="btn zero" onclick="inputNumber('0')">0</button>
+            <button class="btn" onclick="inputDecimal()">.</button>
+        </div>
+    </div>
+
+    <div class="install-prompt" id="installPrompt">
+        <span>📱 Install Calculator App</span>
+        <button class="install-btn" onclick="installApp()">Install</button>
+        <button class="close-btn" onclick="hideInstallPrompt()">×</button>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let currentInput = '0';
+        let operator = null;
+        let previousInput = null;
+        let justCalculated = false;
+        let deferredPrompt = null;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDisplay();
+            
+            // Register service worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register(createServiceWorker())
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed'));
+            }
+        });
+
+        // Create service worker
+        function createServiceWorker() {
+            const swCode = `
+                const CACHE_NAME = 'calculator-v1';
+                const urlsToCache = ['./', '/'];
+                
+                self.addEventListener('install', event => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then(cache => cache.addAll(urlsToCache))
+                    );
+                });
+                
+                self.addEventListener('fetch', event => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => response || fetch(event.request))
+                    );
+                });
+            `;
+            
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            return URL.createObjectURL(blob);
+        }
+
+        // Display functions
+        function updateDisplay() {
+            if (display) {
+                display.textContent = currentInput;
+            }
+        }
+
+        function inputNumber(num) {
+            if (currentInput === '0' || justCalculated) {
+                currentInput = num;
+                justCalculated = false;
+            } else {
+                currentInput += num;
+            }
+            updateDisplay();
+        }
+
+        function inputDecimal() {
+            if (justCalculated) {
+                currentInput = '0';
+                justCalculated = false;
+            }
+            if (currentInput.indexOf('.') === -1) {
+                currentInput += '.';
+            }
+            updateDisplay();
+        }
+
+        function inputOperator(op) {
+            if (operator && !justCalculated) {
+                calculate();
+            }
+            operator = op;
+            previousInput = currentInput;
+            currentInput = '0';
+            justCalculated = false;
+        }
+
+        function calculate() {
+            if (operator && previousInput !== null) {
+                let result;
+                const prev = parseFloat(previousInput);
+                const current = parseFloat(currentInput);
+                
+                switch (operator) {
+                    case '+':
+                        result = prev + current;
+                        break;
+                    case '-':
+                        result = prev - current;
+                        break;
+                    case '*':
+                        result = prev * current;
+                        break;
+                    case '/':
+                        result = current !== 0 ? prev / current : 'Error';
+                        break;
+                    default:
+                        return;
+                }
+                
+                currentInput = result.toString();
+                operator = null;
+                previousInput = null;
+                justCalculated = true;
+                updateDisplay();
+            }
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            operator = null;
+            previousInput = null;
+            justCalculated = false;
+            updateDisplay();
+        }
+
+        function clearEntry() {
+            currentInput = '0';
+            updateDisplay();
+        }
+
+        // PWA Install functionality
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallPrompt();
+        });
+
+        function showInstallPrompt() {
+            const prompt = document.getElementById('installPrompt');
+            if (prompt) {
+                prompt.style.display = 'flex';
+            }
+        }
+
+        function hideInstallPrompt() {
+            const prompt = document.getElementById('installPrompt');
+            if (prompt) {
+                prompt.style.display = 'none';
+            }
+        }
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted install');
+                    }
+                    deferredPrompt = null;
+                    hideInstallPrompt();
+                });
+            }
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                inputNumber(key);
+            } else if (key === '.') {
+                inputDecimal();
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                inputOperator(key);
+            } else if (key === 'Enter' || key === '=') {
+                calculate();
+            } else if (key === 'Escape' || key === 'c' || key === 'C') {
+                clearDisplay();
+            } else if (key === 'Backspace') {
+                clearEntry();
+            }
+        });
+
+        // Hide install prompt when app is installed
+        window.addEventListener('appinstalled', () => {
+            hideInstallPrompt();
+            console.log('PWA installed successfully');
+        });
+    </script>
+</body>
+</html>
