@@ -1,386 +1,348 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculator PWA</title>
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkNhbGN1bGF0b3IgUFdBIiwKICAic2hvcnRfbmFtZSI6ICJDYWxjdWxhdG9yIiwKICAiZGVzY3JpcHRpb24iOiAiQSBzaW1wbGUgY2FsY3VsYXRvciBhcHAiLAogICJzdGFydF91cmwiOiAiLi8iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxYTFhMWEiLAogICJ0aGVtZV9jb2xvciI6ICIjNDI4NWY0IiwKICAib3JpZW50YXRpb24iOiAicG9ydHJhaXQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUIzYVdSMGFEMGlNVEk0SWlCb1pXbG5hSFE5SWpFeU9DSWdkbWxsZDBKdmVEMGlNQ0F3SURFeU9DQXlPRGdpSUdacGJHdzlJaU0wTWpnMVpqUWlJSGh0Ykc1elBTSm9kSFJ3T2k4dmQzZDNMbmN6TG05eVp5OHlNREF3TDNOMlp5SStQSEpsWTNRZ2VEMGlNalFpSUhrOUlqSTBJaUIzYVdSMGFEMGlPREFpSUdobGFXZG9kRDBpT0RBaUlISjRQU0k0SWlCbWFXeHNQU0lqTXpBME56VTNJaTgrUEhSbGVIUWdlRDBpTmpRaUlIazlJalk0SWlCbWFXNTBMV1poYldsc2VUMGlRWEpwWVd3aUlHWnZiblF0YzJsNlpUMGlNVGNpSUdacGJHdzlJaU5tWm1abVppSStLemo4TDNSbGVIUStQQzl6ZG1jKyIsCiAgICAgICJzaXplcyI6ICIxMjh4MTI4IiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0sCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCM2FXUjBhRDBpTlRFeUlpQm9aV2xuYUhROUlqVXhNaUlnZG1sbGQwSnZlRDBpTUNBd0lEVXhNaUExTVRJaUlHWnBiR3c5SWlNME1qZzFaalFpSUhodGJHNXpQU0pvZEhSd09pOHZkM2QzTG5jekxtOXlaeTh5TURBd0wzTjJaeUkrUEhKbFkzUWdlRDBpT1RZaUlIazlJams0SWlCM2FXUjBhRDBpTXpJd0lpQm9aV2xuYUhROUlqTXlNQ0lnY25nOUlqRTJJaUJtYVd4c1BTSWpNekEwTnpVM0lpOCtQSFJsZUhRZ2VEMGlNalUySWlCNVBTSTFNVEFpSUdadmJuUXRabUZ0YVd4NVBTSkJjbWxoYkNJZ1ptOXVkQzF6YVhwbFBTSTJOQ0lnWm1sc2JEMGlJMlptWm1abUlqNStQQzlsZUhRK1BDOXpkbWMrIiwKICAgICAgInNaWVMiOiAiNTEyeDUxMiIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiCiAgICB9CiAgXQp9">
-    <meta name="theme-color" content="#4285f4">
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+        font-size: 16px;
+        line-height: 1.4;
+      }
 
-        .calculator {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            max-width: 350px;
-            width: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+      .container {
+        width: 100vw;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        min-height: 100vh;
+        padding: 12px;
+      }
 
-        .display {
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            font-size: 2.5rem;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            text-align: right;
-            min-height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            line-height: 1.2;
-        }
+      h2 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 16px;
+        font-size: 1.4rem;
+        font-weight: 600;
+        padding-top: 8px;
+      }
 
-        .buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-        }
+      .header-icon {
+        font-size: 1.2em;
+        margin-right: 8px;
+      }
 
-        .btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            padding: 20px;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+      .staff-section {
+        margin-bottom: 16px;
+        text-align: center;
+      }
 
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
+      .staff-section label {
+        display: block;
+        font-weight: 600;
+        color: #34495e;
+        margin-bottom: 8px;
+        font-size: 1rem;
+      }
 
-        .btn:active {
-            transform: translateY(0);
-            background: rgba(255, 255, 255, 0.3);
-        }
+      #staff {
+        width: 100%;
+        max-width: 250px;
+        padding: 12px;
+        border: 2px solid #e0e6ed;
+        border-radius: 8px;
+        font-size: 1rem;
+        background: white;
+        color: #2c3e50;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+      }
 
-        .btn.operator {
-            background: rgba(255, 165, 0, 0.6);
-        }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+      }
 
-        .btn.operator:hover {
-            background: rgba(255, 165, 0, 0.8);
-        }
+      th {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        padding: 12px 4px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.85rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
 
-        .btn.equals {
-            background: rgba(76, 175, 80, 0.6);
-        }
+      th:first-child {
+        width: 45%;
+        text-align: left;
+        padding-left: 8px;
+      }
 
-        .btn.equals:hover {
-            background: rgba(76, 175, 80, 0.8);
-        }
+      th:nth-child(2),
+      th:nth-child(3) {
+        width: 27.5%;
+      }
 
-        .btn.clear {
-            background: rgba(244, 67, 54, 0.6);
-        }
+      td {
+        padding: 8px 4px;
+        border-bottom: 1px solid #ecf0f1;
+        vertical-align: middle;
+      }
 
-        .btn.clear:hover {
-            background: rgba(244, 67, 54, 0.8);
-        }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
 
-        .btn.zero {
-            grid-column: span 2;
-        }
+      .item-name {
+        font-weight: 500;
+        color: #2c3e50;
+        font-size: 0.9rem;
+        text-align: left;
+        padding-left: 8px;
+        word-wrap: break-word;
+        line-height: 1.3;
+      }
 
-        .install-prompt {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 25px;
-            display: none;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-        }
+      input[type="number"] {
+        width: 100%;
+        max-width: 70px;
+        padding: 8px 4px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-align: center;
+        font-size: 0.9rem;
+        background: white;
+        -moz-appearance: textfield;
+        -webkit-appearance: none;
+      }
 
-        .install-btn {
-            background: #4285f4;
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
+      input[type="number"]::-webkit-outer-spin-button,
+      input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
 
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0 5px;
-        }
+      input[type="number"]:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+      }
 
-        @media (max-width: 400px) {
-            .calculator {
-                padding: 20px;
-            }
-            
-            .display {
-                font-size: 2rem;
-                padding: 15px;
-            }
-            
-            .btn {
-                font-size: 1.3rem;
-                padding: 15px;
-            }
+      .submit-container {
+        text-align: center;
+        margin-top: 16px;
+        padding-bottom: 16px;
+      }
+
+      button[type="submit"] {
+        background: linear-gradient(135deg, #27ae60, #229954);
+        color: white;
+        padding: 14px 32px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        max-width: 250px;
+        -webkit-appearance: none;
+      }
+
+      button[type="submit"]:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+      }
+
+      /* Very small screens */
+      @media (max-width: 360px) {
+        .container {
+          padding: 8px;
         }
+        
+        h2 {
+          font-size: 1.2rem;
+          margin-bottom: 12px;
+        }
+        
+        table {
+          font-size: 0.8rem;
+        }
+        
+        th {
+          padding: 10px 2px;
+          font-size: 0.75rem;
+        }
+        
+        td {
+          padding: 6px 2px;
+        }
+        
+        .item-name {
+          font-size: 0.8rem;
+          padding-left: 4px;
+        }
+        
+        input[type="number"] {
+          max-width: 60px;
+          padding: 6px 2px;
+          font-size: 0.8rem;
+        }
+        
+        button[type="submit"] {
+          padding: 12px 24px;
+          font-size: 0.9rem;
+        }
+      }
+
+      /* Landscape orientation */
+      @media (orientation: landscape) and (max-height: 500px) {
+        .container {
+          padding: 8px;
+        }
+        
+        h2 {
+          font-size: 1.2rem;
+          margin-bottom: 8px;
+          padding-top: 4px;
+        }
+        
+        .staff-section {
+          margin-bottom: 12px;
+        }
+        
+        th {
+          padding: 8px 4px;
+          font-size: 0.8rem;
+        }
+        
+        td {
+          padding: 6px 4px;
+        }
+        
+        .submit-container {
+          margin-top: 12px;
+          padding-bottom: 8px;
+        }
+        
+        button[type="submit"] {
+          padding: 10px 24px;
+        }
+      }
     </style>
-</head>
-<body>
-    <div class="calculator">
-        <div class="display" id="display">0</div>
-        <div class="buttons">
-            <button class="btn clear" onclick="clearDisplay()">C</button>
-            <button class="btn clear" onclick="clearEntry()">CE</button>
-            <button class="btn operator" onclick="inputOperator('/')">/</button>
-            <button class="btn operator" onclick="inputOperator('*')">×</button>
-            
-            <button class="btn" onclick="inputNumber('7')">7</button>
-            <button class="btn" onclick="inputNumber('8')">8</button>
-            <button class="btn" onclick="inputNumber('9')">9</button>
-            <button class="btn operator" onclick="inputOperator('-')">-</button>
-            
-            <button class="btn" onclick="inputNumber('4')">4</button>
-            <button class="btn" onclick="inputNumber('5')">5</button>
-            <button class="btn" onclick="inputNumber('6')">6</button>
-            <button class="btn operator" onclick="inputOperator('+')">+</button>
-            
-            <button class="btn" onclick="inputNumber('1')">1</button>
-            <button class="btn" onclick="inputNumber('2')">2</button>
-            <button class="btn" onclick="inputNumber('3')">3</button>
-            <button class="btn equals" onclick="calculate()" rowspan="2">=</button>
-            
-            <button class="btn zero" onclick="inputNumber('0')">0</button>
-            <button class="btn" onclick="inputDecimal()">.</button>
-        </div>
-    </div>
+  </head>
+  <body>
+    <div class="container">
+      <h2>
+        <span class="header-icon">🍺</span>
+        Bar Stock Entry
+      </h2>
 
-    <div class="install-prompt" id="installPrompt">
-        <span>📱 Install Calculator App</span>
-        <button class="install-btn" onclick="installApp()">Install</button>
-        <button class="close-btn" onclick="hideInstallPrompt()">×</button>
+      <div class="staff-section">
+        <label for="staff">Staff Name:</label>
+        <select id="staff">
+          <option>John</option>
+          <option>Mary</option>
+          <option>Lucy</option>
+          <option>Kevin</option>
+        </select>
+      </div>
+
+      <form id="stockForm">
+        <table id="itemsTable">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Received</th>
+              <th>Sold</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        
+        <div class="submit-container">
+          <button type="submit">Submit Entry</button>
+        </div>
+      </form>
     </div>
 
     <script>
-        let display = document.getElementById('display');
-        let currentInput = '0';
-        let operator = null;
-        let previousInput = null;
-        let justCalculated = false;
-        let deferredPrompt = null;
+      const items = [
+        "Tusker Lager", "Smirnoff", "Whitecap", "Guinness", "Heineken",
+        "Captain Morgan", "Chrome", "Red Label", "Krest", "Water",
+        "Juice", "Ice Cubes", "Soda", "Viceroy", "Snacks",
+        "Cigarettes", "Chasers", "Wines", "Beer Towers", "Baileys"
+      ];
 
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            updateDisplay();
-            
-            // Register service worker
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register(createServiceWorker())
-                    .then(reg => console.log('Service Worker registered'))
-                    .catch(err => console.log('Service Worker registration failed'));
-            }
+      const tableBody = document.querySelector("#itemsTable tbody");
+
+      items.forEach((item, index) => {
+        const row = document.createElement("tr");
+
+        const itemCell = document.createElement("td");
+        itemCell.textContent = item;
+        itemCell.className = "item-name";
+
+        const receivedCell = document.createElement("td");
+        const receivedInput = document.createElement("input");
+        receivedInput.type = "number";
+        receivedInput.name = `received_${index}`;
+        receivedInput.min = "0";
+        receivedInput.placeholder = "0";
+        receivedInput.inputMode = "numeric";
+        receivedInput.pattern = "[0-9]*";
+        receivedCell.appendChild(receivedInput);
+
+        const soldCell = document.createElement("td");
+        const soldInput = document.createElement("input");
+        soldInput.type = "number";
+        soldInput.name = `sold_${index}`;
+        soldInput.min = "0";
+        soldInput.placeholder = "0";
+        soldInput.inputMode = "numeric";
+        soldInput.pattern = "[0-9]*";
+        soldCell.appendChild(soldInput);
+
+        row.appendChild(itemCell);
+        row.appendChild(receivedCell);
+        row.appendChild(soldCell);
+
+        tableBody.appendChild(row);
+      });
+
+      document.getElementById("stockForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const staff = document.getElementById("staff").value;
+
+        const itemsData = items.map((item, index) => ({
+          name: item,
+          received: document.querySelector(`[name=received_${index}]`).value || "0",
+          sold: document.querySelector(`[name=sold_${index}]`).value || "0"
+        }));
+
+        google.script.run.withSuccessHandler((msg) => {
+          alert(msg);
+          location.reload(); // optional
+        }).submitForm({
+          staff: staff,
+          items: itemsData
         });
-
-        // Create service worker
-        function createServiceWorker() {
-            const swCode = `
-                const CACHE_NAME = 'calculator-v1';
-                const urlsToCache = ['./', '/'];
-                
-                self.addEventListener('install', event => {
-                    event.waitUntil(
-                        caches.open(CACHE_NAME)
-                            .then(cache => cache.addAll(urlsToCache))
-                    );
-                });
-                
-                self.addEventListener('fetch', event => {
-                    event.respondWith(
-                        caches.match(event.request)
-                            .then(response => response || fetch(event.request))
-                    );
-                });
-            `;
-            
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            return URL.createObjectURL(blob);
-        }
-
-        // Display functions
-        function updateDisplay() {
-            if (display) {
-                display.textContent = currentInput;
-            }
-        }
-
-        function inputNumber(num) {
-            if (currentInput === '0' || justCalculated) {
-                currentInput = num;
-                justCalculated = false;
-            } else {
-                currentInput += num;
-            }
-            updateDisplay();
-        }
-
-        function inputDecimal() {
-            if (justCalculated) {
-                currentInput = '0';
-                justCalculated = false;
-            }
-            if (currentInput.indexOf('.') === -1) {
-                currentInput += '.';
-            }
-            updateDisplay();
-        }
-
-        function inputOperator(op) {
-            if (operator && !justCalculated) {
-                calculate();
-            }
-            operator = op;
-            previousInput = currentInput;
-            currentInput = '0';
-            justCalculated = false;
-        }
-
-        function calculate() {
-            if (operator && previousInput !== null) {
-                let result;
-                const prev = parseFloat(previousInput);
-                const current = parseFloat(currentInput);
-                
-                switch (operator) {
-                    case '+':
-                        result = prev + current;
-                        break;
-                    case '-':
-                        result = prev - current;
-                        break;
-                    case '*':
-                        result = prev * current;
-                        break;
-                    case '/':
-                        result = current !== 0 ? prev / current : 'Error';
-                        break;
-                    default:
-                        return;
-                }
-                
-                currentInput = result.toString();
-                operator = null;
-                previousInput = null;
-                justCalculated = true;
-                updateDisplay();
-            }
-        }
-
-        function clearDisplay() {
-            currentInput = '0';
-            operator = null;
-            previousInput = null;
-            justCalculated = false;
-            updateDisplay();
-        }
-
-        function clearEntry() {
-            currentInput = '0';
-            updateDisplay();
-        }
-
-        // PWA Install functionality
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            showInstallPrompt();
-        });
-
-        function showInstallPrompt() {
-            const prompt = document.getElementById('installPrompt');
-            if (prompt) {
-                prompt.style.display = 'flex';
-            }
-        }
-
-        function hideInstallPrompt() {
-            const prompt = document.getElementById('installPrompt');
-            if (prompt) {
-                prompt.style.display = 'none';
-            }
-        }
-
-        function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted install');
-                    }
-                    deferredPrompt = null;
-                    hideInstallPrompt();
-                });
-            }
-        }
-
-        // Keyboard support
-        document.addEventListener('keydown', function(event) {
-            const key = event.key;
-            
-            if (key >= '0' && key <= '9') {
-                inputNumber(key);
-            } else if (key === '.') {
-                inputDecimal();
-            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
-                inputOperator(key);
-            } else if (key === 'Enter' || key === '=') {
-                calculate();
-            } else if (key === 'Escape' || key === 'c' || key === 'C') {
-                clearDisplay();
-            } else if (key === 'Backspace') {
-                clearEntry();
-            }
-        });
-
-        // Hide install prompt when app is installed
-        window.addEventListener('appinstalled', () => {
-            hideInstallPrompt();
-            console.log('PWA installed successfully');
-        });
+      });
     </script>
-</body>
+  </body>
 </html>
