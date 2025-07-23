@@ -1,348 +1,625 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+import React, { useState, useEffect } from 'react';
+import { User, Phone, DollarSign, History, Settings, Home, Receipt, Church } from 'lucide-react';
 
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        color: #333;
-        font-size: 16px;
-        line-height: 1.4;
-      }
+const SDATimtheApp = () => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [currentView, setCurrentView] = useState('login');
+  const [users, setUsers] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  
+  // Registration form state
+  const [regForm, setRegForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    monthlyIncome: '',
+    church: ''
+  });
+  
+  // Login form state
+  const [loginForm, setLoginForm] = useState({
+    email: '',
+    password: ''
+  });
+  
+  // Payment form state
+  const [paymentForm, setPaymentForm] = useState({
+    amount: '',
+    category: 'tithe',
+    phoneNumber: '',
+    notes: ''
+  });
 
-      .container {
-        width: 100vw;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        min-height: 100vh;
-        padding: 12px;
-      }
+  const churches = [
+    'Nairobi Central SDA Church',
+    'Karen SDA Church',
+    'Eastleigh SDA Church',
+    'Kileleshwa SDA Church',
+    'Embakasi SDA Church'
+  ];
 
-      h2 {
-        text-align: center;
-        color: #2c3e50;
-        margin-bottom: 16px;
-        font-size: 1.4rem;
-        font-weight: 600;
-        padding-top: 8px;
-      }
+  const offeringCategories = [
+    { value: 'tithe', label: 'Tithe (10%)' },
+    { value: 'sabbath_school', label: 'Sabbath School Offering' },
+    { value: 'building_fund', label: 'Building Fund' },
+    { value: 'missions', label: 'World Missions' },
+    { value: 'local_church', label: 'Local Church Offering' },
+    { value: 'disaster_relief', label: 'Disaster Relief' },
+    { value: 'other', label: 'Other' }
+  ];
 
-      .header-icon {
-        font-size: 1.2em;
-        margin-right: 8px;
-      }
+  // Calculate suggested tithe amount
+  const calculateTithe = (income) => {
+    return (parseFloat(income) * 0.1).toFixed(2);
+  };
 
-      .staff-section {
-        margin-bottom: 16px;
-        text-align: center;
-      }
+  // Handle user registration
+  const handleRegister = () => {
+    if (!regForm.firstName || !regForm.lastName || !regForm.email || !regForm.phone || !regForm.password || !regForm.monthlyIncome || !regForm.church) {
+      alert('Please fill all fields');
+      return;
+    }
+    
+    const newUser = {
+      id: Date.now(),
+      ...regForm,
+      joinDate: new Date().toISOString().split('T')[0]
+    };
+    setUsers([...users, newUser]);
+    setCurrentUser(newUser);
+    setCurrentView('dashboard');
+    setRegForm({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      password: '',
+      monthlyIncome: '',
+      church: ''
+    });
+  };
 
-      .staff-section label {
-        display: block;
-        font-weight: 600;
-        color: #34495e;
-        margin-bottom: 8px;
-        font-size: 1rem;
-      }
+  // Handle user login
+  const handleLogin = () => {
+    const user = users.find(u => u.email === loginForm.email && u.password === loginForm.password);
+    if (user) {
+      setCurrentUser(user);
+      setCurrentView('dashboard');
+      setLoginForm({ email: '', password: '' });
+    } else {
+      alert('Invalid credentials');
+    }
+  };
 
-      #staff {
-        width: 100%;
-        max-width: 250px;
-        padding: 12px;
-        border: 2px solid #e0e6ed;
-        border-radius: 8px;
-        font-size: 1rem;
-        background: white;
-        color: #2c3e50;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-      }
+  // Handle M-Pesa payment simulation
+  const handlePayment = () => {
+    if (!paymentForm.amount || !paymentForm.phoneNumber) {
+      alert('Please fill all required fields');
+      return;
+    }
+    
+    const transaction = {
+      id: Date.now(),
+      userId: currentUser.id,
+      amount: parseFloat(paymentForm.amount),
+      category: paymentForm.category,
+      phoneNumber: paymentForm.phoneNumber,
+      notes: paymentForm.notes,
+      date: new Date().toISOString(),
+      status: 'completed',
+      mpesaRef: `MPesa${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    };
+    
+    setTransactions([...transactions, transaction]);
+    alert(`Payment successful! M-Pesa Reference: ${transaction.mpesaRef}`);
+    setPaymentForm({
+      amount: '',
+      category: 'tithe',
+      phoneNumber: currentUser?.phone || '',
+      notes: ''
+    });
+    setCurrentView('dashboard');
+  };
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-        font-size: 0.9rem;
-        margin-bottom: 16px;
-      }
+  // Get user transactions
+  const getUserTransactions = () => {
+    return transactions.filter(t => t.userId === currentUser?.id).reverse();
+  };
 
-      th {
-        background: linear-gradient(135deg, #3498db, #2980b9);
-        color: white;
-        padding: 12px 4px;
-        text-align: center;
-        font-weight: 600;
-        font-size: 0.85rem;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-      }
+  // Calculate total giving
+  const getTotalGiving = () => {
+    return getUserTransactions().reduce((sum, t) => sum + t.amount, 0).toFixed(2);
+  };
 
-      th:first-child {
-        width: 45%;
-        text-align: left;
-        padding-left: 8px;
-      }
+  // Auto-fill phone number when user changes
+  useEffect(() => {
+    if (currentUser) {
+      setPaymentForm(prev => ({ ...prev, phoneNumber: currentUser.phone }));
+    }
+  }, [currentUser]);
 
-      th:nth-child(2),
-      th:nth-child(3) {
-        width: 27.5%;
-      }
+  // Login/Register View
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-center">
+            <Church className="mx-auto h-12 w-12 text-white mb-2" />
+            <h1 className="text-2xl font-bold text-white">SDA Tithe App</h1>
+            <p className="text-blue-100">Faithful giving made simple</p>
+          </div>
+          
+          <div className="p-6">
+            <div className="flex mb-6">
+              <button
+                onClick={() => setCurrentView('login')}
+                className={`flex-1 py-2 px-4 text-center rounded-l-lg ${
+                  currentView === 'login'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                Login
+              </button>
+              <button
+                onClick={() => setCurrentView('register')}
+                className={`flex-1 py-2 px-4 text-center rounded-r-lg ${
+                  currentView === 'register'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                Register
+              </button>
+            </div>
 
-      td {
-        padding: 8px 4px;
-        border-bottom: 1px solid #ecf0f1;
-        vertical-align: middle;
-      }
-
-      tr:nth-child(even) {
-        background-color: #f9f9f9;
-      }
-
-      .item-name {
-        font-weight: 500;
-        color: #2c3e50;
-        font-size: 0.9rem;
-        text-align: left;
-        padding-left: 8px;
-        word-wrap: break-word;
-        line-height: 1.3;
-      }
-
-      input[type="number"] {
-        width: 100%;
-        max-width: 70px;
-        padding: 8px 4px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        text-align: center;
-        font-size: 0.9rem;
-        background: white;
-        -moz-appearance: textfield;
-        -webkit-appearance: none;
-      }
-
-      input[type="number"]::-webkit-outer-spin-button,
-      input[type="number"]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-
-      input[type="number"]:focus {
-        outline: none;
-        border-color: #3498db;
-        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-      }
-
-      .submit-container {
-        text-align: center;
-        margin-top: 16px;
-        padding-bottom: 16px;
-      }
-
-      button[type="submit"] {
-        background: linear-gradient(135deg, #27ae60, #229954);
-        color: white;
-        padding: 14px 32px;
-        border: none;
-        border-radius: 25px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        width: 100%;
-        max-width: 250px;
-        -webkit-appearance: none;
-      }
-
-      button[type="submit"]:active {
-        transform: scale(0.98);
-        opacity: 0.9;
-      }
-
-      /* Very small screens */
-      @media (max-width: 360px) {
-        .container {
-          padding: 8px;
-        }
-        
-        h2 {
-          font-size: 1.2rem;
-          margin-bottom: 12px;
-        }
-        
-        table {
-          font-size: 0.8rem;
-        }
-        
-        th {
-          padding: 10px 2px;
-          font-size: 0.75rem;
-        }
-        
-        td {
-          padding: 6px 2px;
-        }
-        
-        .item-name {
-          font-size: 0.8rem;
-          padding-left: 4px;
-        }
-        
-        input[type="number"] {
-          max-width: 60px;
-          padding: 6px 2px;
-          font-size: 0.8rem;
-        }
-        
-        button[type="submit"] {
-          padding: 12px 24px;
-          font-size: 0.9rem;
-        }
-      }
-
-      /* Landscape orientation */
-      @media (orientation: landscape) and (max-height: 500px) {
-        .container {
-          padding: 8px;
-        }
-        
-        h2 {
-          font-size: 1.2rem;
-          margin-bottom: 8px;
-          padding-top: 4px;
-        }
-        
-        .staff-section {
-          margin-bottom: 12px;
-        }
-        
-        th {
-          padding: 8px 4px;
-          font-size: 0.8rem;
-        }
-        
-        td {
-          padding: 6px 4px;
-        }
-        
-        .submit-container {
-          margin-top: 12px;
-          padding-bottom: 8px;
-        }
-        
-        button[type="submit"] {
-          padding: 10px 24px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h2>
-        <span class="header-icon">🍺</span>
-        Bar Stock Entry
-      </h2>
-
-      <div class="staff-section">
-        <label for="staff">Staff Name:</label>
-        <select id="staff">
-          <option>John</option>
-          <option>Mary</option>
-          <option>Lucy</option>
-          <option>Kevin</option>
-        </select>
-      </div>
-
-      <form id="stockForm">
-        <table id="itemsTable">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Received</th>
-              <th>Sold</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        
-        <div class="submit-container">
-          <button type="submit">Submit Entry</button>
+            {currentView === 'login' ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={loginForm.email}
+                    onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                  <input
+                    type="password"
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <button
+                  onClick={handleLogin}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Login
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                    <input
+                      type="text"
+                      value={regForm.firstName}
+                      onChange={(e) => setRegForm({...regForm, firstName: e.target.value})}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      value={regForm.lastName}
+                      onChange={(e) => setRegForm({...regForm, lastName: e.target.value})}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={regForm.email}
+                    onChange={(e) => setRegForm({...regForm, email: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <input
+                    type="tel"
+                    placeholder="254xxxxxxxxx"
+                    value={regForm.phone}
+                    onChange={(e) => setRegForm({...regForm, phone: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Church</label>
+                  <select
+                    value={regForm.church}
+                    onChange={(e) => setRegForm({...regForm, church: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select your church</option>
+                    {churches.map(church => (
+                      <option key={church} value={church}>{church}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Income (KSH)</label>
+                  <input
+                    type="number"
+                    value={regForm.monthlyIncome}
+                    onChange={(e) => setRegForm({...regForm, monthlyIncome: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                  <input
+                    type="password"
+                    value={regForm.password}
+                    onChange={(e) => setRegForm({...regForm, password: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <button
+                  onClick={handleRegister}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Create Account
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </form>
+      </div>
+    );
+  }
+
+  // Main App Views
+  const renderContent = () => {
+    switch (currentView) {
+      case 'dashboard':
+        const suggestedTithe = calculateTithe(currentUser.monthlyIncome);
+        const recentTransactions = getUserTransactions().slice(0, 3);
+        
+        return (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
+              <h2 className="text-2xl font-bold mb-2">Welcome, {currentUser.firstName}!</h2>
+              <p className="text-blue-100">{currentUser.church}</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                  <DollarSign className="h-8 w-8 text-green-600" />
+                  <span className="text-sm text-gray-500">Suggested Tithe</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-800">KSH {suggestedTithe}</p>
+                <p className="text-sm text-gray-600">10% of monthly income</p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                  <Receipt className="h-8 w-8 text-blue-600" />
+                  <span className="text-sm text-gray-500">Total Given</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-800">KSH {getTotalGiving()}</p>
+                <p className="text-sm text-gray-600">This year</p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                  <History className="h-8 w-8 text-purple-600" />
+                  <span className="text-sm text-gray-500">Transactions</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-800">{getUserTransactions().length}</p>
+                <p className="text-sm text-gray-600">Total payments</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Transactions</h3>
+              {recentTransactions.length > 0 ? (
+                <div className="space-y-3">
+                  {recentTransactions.map(transaction => (
+                    <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-gray-800">
+                          {offeringCategories.find(c => c.value === transaction.category)?.label}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {new Date(transaction.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-green-600">KSH {transaction.amount}</p>
+                        <p className="text-xs text-gray-500">{transaction.mpesaRef}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No transactions yet</p>
+              )}
+            </div>
+
+            <button
+              onClick={() => setCurrentView('payment')}
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-xl hover:from-green-600 hover:to-green-700 transition-all font-medium text-lg shadow-lg"
+            >
+              Make a Payment
+            </button>
+          </div>
+        );
+
+      case 'payment':
+        const suggestedAmount = paymentForm.category === 'tithe' ? calculateTithe(currentUser.monthlyIncome) : '';
+        
+        return (
+          <div className="max-w-md mx-auto">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Make Payment</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Offering Type</label>
+                  <select
+                    value={paymentForm.category}
+                    onChange={(e) => setPaymentForm({...paymentForm, category: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {offeringCategories.map(category => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Amount (KSH)
+                    {paymentForm.category === 'tithe' && (
+                      <span className="text-blue-600 font-normal"> - Suggested: {suggestedAmount}</span>
+                    )}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                    placeholder={suggestedAmount}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  {paymentForm.category === 'tithe' && (
+                    <button
+                      onClick={() => setPaymentForm({...paymentForm, amount: suggestedAmount})}
+                      className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      Use suggested amount
+                    </button>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">M-Pesa Phone Number</label>
+                  <input
+                    type="tel"
+                    value={paymentForm.phoneNumber}
+                    onChange={(e) => setPaymentForm({...paymentForm, phoneNumber: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                  <textarea
+                    value={paymentForm.notes}
+                    onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows="2"
+                    placeholder="Special prayer request or note"
+                  />
+                </div>
+
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setCurrentView('dashboard')}
+                    className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handlePayment}
+                    className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  >
+                    Pay via M-Pesa
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'history':
+        const userTransactions = getUserTransactions();
+        
+        return (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Transaction History</h2>
+            
+            {userTransactions.length > 0 ? (
+              <div className="space-y-4">
+                {userTransactions.map(transaction => (
+                  <div key={transaction.id} className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-800">
+                          {offeringCategories.find(c => c.value === transaction.category)?.label}
+                        </h3>
+                        <p className="text-gray-600">{new Date(transaction.date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-green-600">KSH {transaction.amount}</p>
+                        <p className="text-sm text-gray-500">Ref: {transaction.mpesaRef}</p>
+                      </div>
+                    </div>
+                    
+                    {transaction.notes && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <p className="text-sm text-gray-700">
+                          <strong>Note:</strong> {transaction.notes}
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                      <span className="text-sm text-gray-500">Phone: {transaction.phoneNumber}</span>
+                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                        {transaction.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl p-12 shadow-lg border border-gray-100 text-center">
+                <History className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Transactions Yet</h3>
+                <p className="text-gray-600 mb-6">Start your faithful giving journey today</p>
+                <button
+                  onClick={() => setCurrentView('payment')}
+                  className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Make First Payment
+                </button>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'profile':
+        return (
+          <div className="max-w-md mx-auto">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <div className="text-center mb-6">
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="h-10 w-10 text-blue-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">{currentUser.firstName} {currentUser.lastName}</h2>
+                <p className="text-gray-600">{currentUser.email}</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <label className="block text-sm font-medium text-gray-600">Church</label>
+                  <p className="text-gray-800 font-medium">{currentUser.church}</p>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <label className="block text-sm font-medium text-gray-600">Phone Number</label>
+                  <p className="text-gray-800 font-medium">{currentUser.phone}</p>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <label className="block text-sm font-medium text-gray-600">Total Given This Year</label>
+                  <p className="text-green-600 font-bold text-lg">KSH {getTotalGiving()}</p>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <label className="block text-sm font-medium text-gray-600">Member Since</label>
+                  <p className="text-gray-800 font-medium">{new Date(currentUser.joinDate).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setCurrentUser(null);
+                  setCurrentView('login');
+                }}
+                className="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium mt-6"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Church className="h-8 w-8 text-blue-600" />
+              <h1 className="text-xl font-bold text-gray-800">SDA Tithe Collection</h1>
+            </div>
+            <div className="text-sm text-gray-600">
+              {currentUser.firstName} {currentUser.lastName}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Navigation */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex space-x-8">
+            {[
+              { key: 'dashboard', label: 'Dashboard', icon: Home },
+              { key: 'payment', label: 'Make Payment', icon: DollarSign },
+              { key: 'history', label: 'History', icon: History },
+              { key: 'profile', label: 'Profile', icon: Settings }
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setCurrentView(key)}
+                className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  currentView === key
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        {renderContent()}
+      </main>
     </div>
+  );
+};
 
-    <script>
-      const items = [
-        "Tusker Lager", "Smirnoff", "Whitecap", "Guinness", "Heineken",
-        "Captain Morgan", "Chrome", "Red Label", "Krest", "Water",
-        "Juice", "Ice Cubes", "Soda", "Viceroy", "Snacks",
-        "Cigarettes", "Chasers", "Wines", "Beer Towers", "Baileys"
-      ];
-
-      const tableBody = document.querySelector("#itemsTable tbody");
-
-      items.forEach((item, index) => {
-        const row = document.createElement("tr");
-
-        const itemCell = document.createElement("td");
-        itemCell.textContent = item;
-        itemCell.className = "item-name";
-
-        const receivedCell = document.createElement("td");
-        const receivedInput = document.createElement("input");
-        receivedInput.type = "number";
-        receivedInput.name = `received_${index}`;
-        receivedInput.min = "0";
-        receivedInput.placeholder = "0";
-        receivedInput.inputMode = "numeric";
-        receivedInput.pattern = "[0-9]*";
-        receivedCell.appendChild(receivedInput);
-
-        const soldCell = document.createElement("td");
-        const soldInput = document.createElement("input");
-        soldInput.type = "number";
-        soldInput.name = `sold_${index}`;
-        soldInput.min = "0";
-        soldInput.placeholder = "0";
-        soldInput.inputMode = "numeric";
-        soldInput.pattern = "[0-9]*";
-        soldCell.appendChild(soldInput);
-
-        row.appendChild(itemCell);
-        row.appendChild(receivedCell);
-        row.appendChild(soldCell);
-
-        tableBody.appendChild(row);
-      });
-
-      document.getElementById("stockForm").addEventListener("submit", function (e) {
-        e.preventDefault();
-        const staff = document.getElementById("staff").value;
-
-        const itemsData = items.map((item, index) => ({
-          name: item,
-          received: document.querySelector(`[name=received_${index}]`).value || "0",
-          sold: document.querySelector(`[name=sold_${index}]`).value || "0"
-        }));
-
-        google.script.run.withSuccessHandler((msg) => {
-          alert(msg);
-          location.reload(); // optional
-        }).submitForm({
-          staff: staff,
-          items: itemsData
-        });
-      });
-    </script>
-  </body>
-</html>
+export default SDATimtheApp;
