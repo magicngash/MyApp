@@ -1,625 +1,288 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, DollarSign, History, Settings, Home, Receipt, Church } from 'lucide-react';
+import { Calendar, Plus, Download } from 'lucide-react';
 
-const SDATimtheApp = () => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [currentView, setCurrentView] = useState('login');
-  const [users, setUsers] = useState([]);
-  const [transactions, setTransactions] = useState([]);
-  
-  // Registration form state
-  const [regForm, setRegForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: '',
-    monthlyIncome: '',
-    church: ''
-  });
-  
-  // Login form state
-  const [loginForm, setLoginForm] = useState({
-    email: '',
-    password: ''
-  });
-  
-  // Payment form state
-  const [paymentForm, setPaymentForm] = useState({
-    amount: '',
-    category: 'tithe',
-    phoneNumber: '',
-    notes: ''
+const BarSalesEntry = () => {
+  const [formData, setFormData] = useState({
+    date: '2024-04-23',
+    shift: 'Morning',
+    waiterName: 'John',
+    items: [{ name: 'Beer', quantity: 2, price: 300 }],
+    cashInHand: '',
+    mpesaReceived: ''
   });
 
-  const churches = [
-    'Nairobi Central SDA Church',
-    'Karen SDA Church',
-    'Eastleigh SDA Church',
-    'Kileleshwa SDA Church',
-    'Embakasi SDA Church'
+  // Pre-loaded Kenyan bar drinks with prices in KES
+  const drinkOptions = [
+    { name: 'Tusker Beer', price: 300 },
+    { name: 'White Cap Beer', price: 280 },
+    { name: 'Pilsner Beer', price: 280 },
+    { name: 'Guinness', price: 350 },
+    { name: 'Heineken', price: 400 },
+    { name: 'Corona', price: 450 },
+    { name: 'Vodka Shot', price: 200 },
+    { name: 'Whiskey Shot', price: 300 },
+    { name: 'Gin & Tonic', price: 400 },
+    { name: 'Wine Glass (Red)', price: 500 },
+    { name: 'Wine Glass (White)', price: 500 },
+    { name: 'Cocktail', price: 600 },
+    { name: 'Soda (Coke)', price: 120 },
+    { name: 'Soda (Fanta)', price: 120 },
+    { name: 'Water Bottle', price: 100 },
+    { name: 'Energy Drink', price: 200 },
+    { name: 'Coffee', price: 150 },
+    { name: 'Tea', price: 100 }
   ];
 
-  const offeringCategories = [
-    { value: 'tithe', label: 'Tithe (10%)' },
-    { value: 'sabbath_school', label: 'Sabbath School Offering' },
-    { value: 'building_fund', label: 'Building Fund' },
-    { value: 'missions', label: 'World Missions' },
-    { value: 'local_church', label: 'Local Church Offering' },
-    { value: 'disaster_relief', label: 'Disaster Relief' },
-    { value: 'other', label: 'Other' }
-  ];
+  const shiftOptions = ['Morning', 'Afternoon', 'Evening', 'Night'];
 
-  // Calculate suggested tithe amount
-  const calculateTithe = (income) => {
-    return (parseFloat(income) * 0.1).toFixed(2);
+  const calculateItemTotal = (item) => {
+    return (item.quantity || 0) * (item.price || 0);
   };
 
-  // Handle user registration
-  const handleRegister = () => {
-    if (!regForm.firstName || !regForm.lastName || !regForm.email || !regForm.phone || !regForm.password || !regForm.monthlyIncome || !regForm.church) {
-      alert('Please fill all fields');
-      return;
-    }
-    
-    const newUser = {
-      id: Date.now(),
-      ...regForm,
-      joinDate: new Date().toISOString().split('T')[0]
+  const calculateGrandTotal = () => {
+    return formData.items.reduce((total, item) => total + calculateItemTotal(item), 0);
+  };
+
+  const addItem = () => {
+    setFormData(prev => ({
+      ...prev,
+      items: [...prev.items, { name: '', quantity: 0, price: 0 }]
+    }));
+  };
+
+  const removeItem = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateItem = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      items: prev.items.map((item, i) => {
+        if (i === index) {
+          if (field === 'name') {
+            const selectedDrink = drinkOptions.find(drink => drink.name === value);
+            return {
+              ...item,
+              name: value,
+              price: selectedDrink ? selectedDrink.price : 0
+            };
+          }
+          return { ...item, [field]: value };
+        }
+        return item;
+      })
+    }));
+  };
+
+  const updateFormField = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const generateExcelData = () => {
+    const grandTotal = calculateGrandTotal();
+    const cashAmount = parseFloat(formData.cashInHand) || 0;
+    const mpesaAmount = parseFloat(formData.mpesaReceived) || 0;
+    const totalReceived = cashAmount + mpesaAmount;
+
+    const excelData = {
+      date: formData.date,
+      shift: formData.shift,
+      waiter: formData.waiterName,
+      items: formData.items.map(item => ({
+        item: item.name,
+        quantity: item.quantity,
+        unitPrice: item.price,
+        total: calculateItemTotal(item)
+      })),
+      salesTotal: grandTotal,
+      cashInHand: cashAmount,
+      mpesaReceived: mpesaAmount,
+      totalReceived: totalReceived,
+      difference: totalReceived - grandTotal
     };
-    setUsers([...users, newUser]);
-    setCurrentUser(newUser);
-    setCurrentView('dashboard');
-    setRegForm({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      password: '',
-      monthlyIncome: '',
-      church: ''
-    });
+
+    return excelData;
   };
 
-  // Handle user login
-  const handleLogin = () => {
-    const user = users.find(u => u.email === loginForm.email && u.password === loginForm.password);
-    if (user) {
-      setCurrentUser(user);
-      setCurrentView('dashboard');
-      setLoginForm({ email: '', password: '' });
-    } else {
-      alert('Invalid credentials');
-    }
-  };
-
-  // Handle M-Pesa payment simulation
-  const handlePayment = () => {
-    if (!paymentForm.amount || !paymentForm.phoneNumber) {
-      alert('Please fill all required fields');
-      return;
-    }
+  const exportToExcel = () => {
+    const data = generateExcelData();
+    const jsonString = JSON.stringify(data, null, 2);
     
-    const transaction = {
-      id: Date.now(),
-      userId: currentUser.id,
-      amount: parseFloat(paymentForm.amount),
-      category: paymentForm.category,
-      phoneNumber: paymentForm.phoneNumber,
-      notes: paymentForm.notes,
-      date: new Date().toISOString(),
-      status: 'completed',
-      mpesaRef: `MPesa${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-    };
-    
-    setTransactions([...transactions, transaction]);
-    alert(`Payment successful! M-Pesa Reference: ${transaction.mpesaRef}`);
-    setPaymentForm({
-      amount: '',
-      category: 'tithe',
-      phoneNumber: currentUser?.phone || '',
-      notes: ''
-    });
-    setCurrentView('dashboard');
+    // Create downloadable file
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bar-sales-${data.date}-${data.shift}-${data.waiter}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    alert('Sales data exported! Import this JSON file into Excel or convert to CSV format.');
   };
 
-  // Get user transactions
-  const getUserTransactions = () => {
-    return transactions.filter(t => t.userId === currentUser?.id).reverse();
-  };
-
-  // Calculate total giving
-  const getTotalGiving = () => {
-    return getUserTransactions().reduce((sum, t) => sum + t.amount, 0).toFixed(2);
-  };
-
-  // Auto-fill phone number when user changes
-  useEffect(() => {
-    if (currentUser) {
-      setPaymentForm(prev => ({ ...prev, phoneNumber: currentUser.phone }));
-    }
-  }, [currentUser]);
-
-  // Login/Register View
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-center">
-            <Church className="mx-auto h-12 w-12 text-white mb-2" />
-            <h1 className="text-2xl font-bold text-white">SDA Tithe App</h1>
-            <p className="text-blue-100">Faithful giving made simple</p>
-          </div>
-          
-          <div className="p-6">
-            <div className="flex mb-6">
-              <button
-                onClick={() => setCurrentView('login')}
-                className={`flex-1 py-2 px-4 text-center rounded-l-lg ${
-                  currentView === 'login'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700'
-                }`}
-              >
-                Login
-              </button>
-              <button
-                onClick={() => setCurrentView('register')}
-                className={`flex-1 py-2 px-4 text-center rounded-r-lg ${
-                  currentView === 'register'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700'
-                }`}
-              >
-                Register
-              </button>
-            </div>
-
-            {currentView === 'login' ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={loginForm.email}
-                    onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                  <input
-                    type="password"
-                    value={loginForm.password}
-                    onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <button
-                  onClick={handleLogin}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  Login
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                    <input
-                      type="text"
-                      value={regForm.firstName}
-                      onChange={(e) => setRegForm({...regForm, firstName: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                    <input
-                      type="text"
-                      value={regForm.lastName}
-                      onChange={(e) => setRegForm({...regForm, lastName: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={regForm.email}
-                    onChange={(e) => setRegForm({...regForm, email: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    placeholder="254xxxxxxxxx"
-                    value={regForm.phone}
-                    onChange={(e) => setRegForm({...regForm, phone: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Church</label>
-                  <select
-                    value={regForm.church}
-                    onChange={(e) => setRegForm({...regForm, church: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select your church</option>
-                    {churches.map(church => (
-                      <option key={church} value={church}>{church}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Income (KSH)</label>
-                  <input
-                    type="number"
-                    value={regForm.monthlyIncome}
-                    onChange={(e) => setRegForm({...regForm, monthlyIncome: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                  <input
-                    type="password"
-                    value={regForm.password}
-                    onChange={(e) => setRegForm({...regForm, password: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <button
-                  onClick={handleRegister}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  Create Account
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Main App Views
-  const renderContent = () => {
-    switch (currentView) {
-      case 'dashboard':
-        const suggestedTithe = calculateTithe(currentUser.monthlyIncome);
-        const recentTransactions = getUserTransactions().slice(0, 3);
-        
-        return (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
-              <h2 className="text-2xl font-bold mb-2">Welcome, {currentUser.firstName}!</h2>
-              <p className="text-blue-100">{currentUser.church}</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <DollarSign className="h-8 w-8 text-green-600" />
-                  <span className="text-sm text-gray-500">Suggested Tithe</span>
-                </div>
-                <p className="text-2xl font-bold text-gray-800">KSH {suggestedTithe}</p>
-                <p className="text-sm text-gray-600">10% of monthly income</p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <Receipt className="h-8 w-8 text-blue-600" />
-                  <span className="text-sm text-gray-500">Total Given</span>
-                </div>
-                <p className="text-2xl font-bold text-gray-800">KSH {getTotalGiving()}</p>
-                <p className="text-sm text-gray-600">This year</p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <History className="h-8 w-8 text-purple-600" />
-                  <span className="text-sm text-gray-500">Transactions</span>
-                </div>
-                <p className="text-2xl font-bold text-gray-800">{getUserTransactions().length}</p>
-                <p className="text-sm text-gray-600">Total payments</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Transactions</h3>
-              {recentTransactions.length > 0 ? (
-                <div className="space-y-3">
-                  {recentTransactions.map(transaction => (
-                    <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-800">
-                          {offeringCategories.find(c => c.value === transaction.category)?.label}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {new Date(transaction.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-green-600">KSH {transaction.amount}</p>
-                        <p className="text-xs text-gray-500">{transaction.mpesaRef}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-4">No transactions yet</p>
-              )}
-            </div>
-
-            <button
-              onClick={() => setCurrentView('payment')}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-xl hover:from-green-600 hover:to-green-700 transition-all font-medium text-lg shadow-lg"
-            >
-              Make a Payment
-            </button>
-          </div>
-        );
-
-      case 'payment':
-        const suggestedAmount = paymentForm.category === 'tithe' ? calculateTithe(currentUser.monthlyIncome) : '';
-        
-        return (
-          <div className="max-w-md mx-auto">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Make Payment</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Offering Type</label>
-                  <select
-                    value={paymentForm.category}
-                    onChange={(e) => setPaymentForm({...paymentForm, category: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {offeringCategories.map(category => (
-                      <option key={category.value} value={category.value}>
-                        {category.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Amount (KSH)
-                    {paymentForm.category === 'tithe' && (
-                      <span className="text-blue-600 font-normal"> - Suggested: {suggestedAmount}</span>
-                    )}
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={paymentForm.amount}
-                    onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
-                    placeholder={suggestedAmount}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  {paymentForm.category === 'tithe' && (
-                    <button
-                      onClick={() => setPaymentForm({...paymentForm, amount: suggestedAmount})}
-                      className="mt-2 text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      Use suggested amount
-                    </button>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">M-Pesa Phone Number</label>
-                  <input
-                    type="tel"
-                    value={paymentForm.phoneNumber}
-                    onChange={(e) => setPaymentForm({...paymentForm, phoneNumber: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                  <textarea
-                    value={paymentForm.notes}
-                    onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows="2"
-                    placeholder="Special prayer request or note"
-                  />
-                </div>
-
-                <div className="flex space-x-4">
-                  <button
-                    onClick={() => setCurrentView('dashboard')}
-                    className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handlePayment}
-                    className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                  >
-                    Pay via M-Pesa
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'history':
-        const userTransactions = getUserTransactions();
-        
-        return (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Transaction History</h2>
-            
-            {userTransactions.length > 0 ? (
-              <div className="space-y-4">
-                {userTransactions.map(transaction => (
-                  <div key={transaction.id} className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800">
-                          {offeringCategories.find(c => c.value === transaction.category)?.label}
-                        </h3>
-                        <p className="text-gray-600">{new Date(transaction.date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-green-600">KSH {transaction.amount}</p>
-                        <p className="text-sm text-gray-500">Ref: {transaction.mpesaRef}</p>
-                      </div>
-                    </div>
-                    
-                    {transaction.notes && (
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-sm text-gray-700">
-                          <strong>Note:</strong> {transaction.notes}
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                      <span className="text-sm text-gray-500">Phone: {transaction.phoneNumber}</span>
-                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                        {transaction.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-xl p-12 shadow-lg border border-gray-100 text-center">
-                <History className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Transactions Yet</h3>
-                <p className="text-gray-600 mb-6">Start your faithful giving journey today</p>
-                <button
-                  onClick={() => setCurrentView('payment')}
-                  className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Make First Payment
-                </button>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'profile':
-        return (
-          <div className="max-w-md mx-auto">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <div className="text-center mb-6">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="h-10 w-10 text-blue-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-800">{currentUser.firstName} {currentUser.lastName}</h2>
-                <p className="text-gray-600">{currentUser.email}</p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-600">Church</label>
-                  <p className="text-gray-800 font-medium">{currentUser.church}</p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-600">Phone Number</label>
-                  <p className="text-gray-800 font-medium">{currentUser.phone}</p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-600">Total Given This Year</label>
-                  <p className="text-green-600 font-bold text-lg">KSH {getTotalGiving()}</p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-600">Member Since</label>
-                  <p className="text-gray-800 font-medium">{new Date(currentUser.joinDate).toLocaleDateString()}</p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  setCurrentUser(null);
-                  setCurrentView('login');
-                }}
-                className="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium mt-6"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+  const handleSubmit = () => {
+    exportToExcel();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Church className="h-8 w-8 text-blue-600" />
-              <h1 className="text-xl font-bold text-gray-800">SDA Tithe Collection</h1>
+    <div className="max-w-4xl mx-auto p-6 bg-white">
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">Daily Bar Sales Entry</h1>
+        
+        <div className="space-y-6">
+          {/* Date and Shift Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+              <div className="relative">
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => updateFormField('date', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
+                <Calendar className="absolute right-3 top-3 h-5 w-5 text-gray-400 pointer-events-none" />
+              </div>
             </div>
-            <div className="text-sm text-gray-600">
-              {currentUser.firstName} {currentUser.lastName}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex space-x-8">
-            {[
-              { key: 'dashboard', label: 'Dashboard', icon: Home },
-              { key: 'payment', label: 'Make Payment', icon: DollarSign },
-              { key: 'history', label: 'History', icon: History },
-              { key: 'profile', label: 'Profile', icon: Settings }
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setCurrentView(key)}
-                className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                  currentView === key
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Shift</label>
+              <select
+                value={formData.shift}
+                onChange={(e) => updateFormField('shift', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent appearance-none bg-white"
               >
-                <Icon className="h-4 w-4" />
-                <span>{label}</span>
-              </button>
-            ))}
+                {shiftOptions.map(shift => (
+                  <option key={shift} value={shift}>{shift}</option>
+                ))}
+              </select>
+            </div>
           </div>
-        </div>
-      </nav>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {renderContent()}
-      </main>
+          {/* Waiter Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Waiter Name</label>
+            <input
+              type="text"
+              value={formData.waiterName}
+              onChange={(e) => updateFormField('waiterName', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="Enter waiter name"
+            />
+          </div>
+
+          {/* Items Section */}
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-700">Items Sold</h3>
+              <button
+                type="button"
+                onClick={addItem}
+                className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Add Item
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {formData.items.map((item, index) => (
+                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 bg-white border border-gray-200 rounded-lg">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Item</label>
+                    <select
+                      value={item.name}
+                      onChange={(e) => updateItem(index, 'name', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    >
+                      <option value="">Select drink...</option>
+                      {drinkOptions.map(drink => (
+                        <option key={drink.name} value={drink.name}>
+                          {drink.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={item.quantity || ''}
+                      onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">&nbsp;</label>
+                    <button
+                      onClick={addItem}
+                      className="flex items-center justify-center w-full px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                      title="Add new item"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Payment Methods */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Cash in Hand</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.cashInHand}
+                  onChange={(e) => updateFormField('cashInHand', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent pl-12"
+                  placeholder="0.00"
+                />
+                <span className="absolute left-4 top-3 text-gray-500 font-medium">KES</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">M-Pesa Received</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.mpesaReceived}
+                  onChange={(e) => updateFormField('mpesaReceived', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent pl-12"
+                  placeholder="0.00"
+                />
+                <span className="absolute left-4 top-3 text-gray-500 font-medium">KES</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            onClick={handleSubmit}
+            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-teal-600 text-white text-lg font-semibold rounded-lg hover:bg-teal-700 transition-colors"
+          >
+            <Download className="h-5 w-5" />
+            Submit & Export to Excel
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default SDATimtheApp;
+export default BarSalesEntry;
