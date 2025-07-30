@@ -1,321 +1,107 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SalonSmart - Daily Services Report</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            flex: 1;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px 0;
-        }
-
-        .header h1 {
-            color: #2c3e50;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: 300;
-        }
-
-        .header p {
-            color: #7f8c8d;
-            font-size: 1.1em;
-        }
-
-        .form-container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-bottom: 20px;
-        }
-
-        .date-section {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #ecf0f1;
-        }
-
-        .date-label {
-            display: block;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        }
-
-        .date-input {
-            width: 200px;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-        }
-
-        .date-input:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-
-        .services-section h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 1.4em;
-            font-weight: 600;
-        }
-
-        .services-grid {
-            display: grid;
-            gap: 15px;
-        }
-
-        .service-row {
-            display: grid;
-            grid-template-columns: 40px 1fr 120px;
-            align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-            transition: background-color 0.2s ease;
-        }
-
-        .service-row:hover {
-            background: #e8f4fd;
-        }
-
-        .row-number {
-            font-weight: 600;
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-
-        .service-name {
-            font-weight: 500;
-            color: #2c3e50;
-            padding-left: 15px;
-        }
-
-        .quantity-input {
-            width: 80px;
-            padding: 10px 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            text-align: center;
-            font-size: 16px;
-            font-weight: 600;
-            transition: border-color 0.3s ease;
-        }
-
-        .quantity-input:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-
-        .submit-section {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #ecf0f1;
-        }
-
-        .submit-btn {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .submit-btn:hover {
-            background: linear-gradient(135deg, #2980b9, #21618c);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #7f8c8d;
-            font-size: 14px;
-            background: white;
-            border-top: 1px solid #ecf0f1;
-            margin-top: auto;
-        }
-
-        /* Remove spinner arrows from number inputs */
-        .quantity-input::-webkit-outer-spin-button,
-        .quantity-input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .quantity-input[type=number] {
-            -moz-appearance: textfield;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SalonSmart - Daily Services Report</title>
+  <style>
+    /* --- Styling omitted for brevity --- use your full CSS as is --- */
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>SalonSmart</h1>
-            <p>Daily Services Report</p>
-        </div>
-
-        <div class="form-container">
-            <form id="servicesForm">
-                <!-- Date Section -->
-                <div class="date-section">
-                    <label class="date-label" for="reportDate">📅 Date</label>
-                    <input type="date" id="reportDate" class="date-input" required>
-                </div>
-
-                <!-- Services Section -->
-                <div class="services-section">
-                    <h2>📋 Service Quantities</h2>
-                    <div class="services-grid">
-                        <div class="service-row">
-                            <span class="row-number">1</span>
-                            <span class="service-name">Facial Scrub</span>
-                            <input type="number" class="quantity-input" value="0" min="0" name="service1">
-                        </div>
-                        <div class="service-row">
-                            <span class="row-number">2</span>
-                            <span class="service-name">Nail Polish</span>
-                            <input type="number" class="quantity-input" value="0" min="0" name="service2">
-                        </div>
-                        <div class="service-row">
-                            <span class="row-number">3</span>
-                            <span class="service-name">Hair Relaxing</span>
-                            <input type="number" class="quantity-input" value="0" min="0" name="service3">
-                        </div>
-                        <div class="service-row">
-                            <span class="row-number">4</span>
-                            <span class="service-name">Pedicure</span>
-                            <input type="number" class="quantity-input" value="0" min="0" name="service4">
-                        </div>
-                        <div class="service-row">
-                            <span class="row-number">5</span>
-                            <span class="service-name">Manicure</span>
-                            <input type="number" class="quantity-input" value="0" min="0" name="service5">
-                        </div>
-                        <div class="service-row">
-                            <span class="row-number">6</span>
-                            <span class="service-name">Hair Wash & Blow Dry</span>
-                            <input type="number" class="quantity-input" value="0" min="0" name="service6">
-                        </div>
-                        <div class="service-row">
-                            <span class="row-number">7</span>
-                            <span class="service-name">Braiding</span>
-                            <input type="number" class="quantity-input" value="0" min="0" name="service7">
-                        </div>
-                        <div class="service-row">
-                            <span class="row-number">8</span>
-                            <span class="service-name">Gel Polish</span>
-                            <input type="number" class="quantity-input" value="0" min="0" name="service8">
-                        </div>
-                        <div class="service-row">
-                            <span class="row-number">9</span>
-                            <span class="service-name">Face Waxing</span>
-                            <input type="number" class="quantity-input" value="0" min="0" name="service9">
-                        </div>
-                        <div class="service-row">
-                            <span class="row-number">10</span>
-                            <span class="service-name">Hair Treatment</span>
-                            <input type="number" class="quantity-input" value="0" min="0" name="service10">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Submit Section -->
-                <div class="submit-section">
-                    <button type="submit" class="submit-btn">📤 Submit Day's Report</button>
-                </div>
-            </form>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>SalonSmart</h1>
+      <p>Daily Services Report</p>
     </div>
 
-    <footer class="footer">
-        © 2025 SalonSmart – Private Use Only
-    </footer>
+    <div class="form-container">
+      <form id="servicesForm">
+        <!-- Date Section -->
+        <div class="date-section">
+          <label class="date-label" for="reportDate">📅 Date</label>
+          <input type="date" id="reportDate" class="date-input" required />
+        </div>
 
-    <script>
-        // Set today's date as default
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date();
-            const dateString = today.getFullYear() + '-' + 
-                             String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                             String(today.getDate()).padStart(2, '0');
-            document.getElementById('reportDate').value = dateString;
-        });
+        <!-- Services Section -->
+        <div class="services-section">
+          <h2>📋 Service Quantities</h2>
+          <div class="services-grid">
+            <!-- Predefined 10 services -->
+            <div class="service-row"><span class="row-number">1</span><span class="service-name">Facial Scrub</span><input type="number" class="quantity-input" value="0" min="0" name="service1" /></div>
+            <div class="service-row"><span class="row-number">2</span><span class="service-name">Nail Polish</span><input type="number" class="quantity-input" value="0" min="0" name="service2" /></div>
+            <div class="service-row"><span class="row-number">3</span><span class="service-name">Hair Relaxing</span><input type="number" class="quantity-input" value="0" min="0" name="service3" /></div>
+            <div class="service-row"><span class="row-number">4</span><span class="service-name">Pedicure</span><input type="number" class="quantity-input" value="0" min="0" name="service4" /></div>
+            <div class="service-row"><span class="row-number">5</span><span class="service-name">Manicure</span><input type="number" class="quantity-input" value="0" min="0" name="service5" /></div>
+            <div class="service-row"><span class="row-number">6</span><span class="service-name">Hair Wash & Blow Dry</span><input type="number" class="quantity-input" value="0" min="0" name="service6" /></div>
+            <div class="service-row"><span class="row-number">7</span><span class="service-name">Braiding</span><input type="number" class="quantity-input" value="0" min="0" name="service7" /></div>
+            <div class="service-row"><span class="row-number">8</span><span class="service-name">Gel Polish</span><input type="number" class="quantity-input" value="0" min="0" name="service8" /></div>
+            <div class="service-row"><span class="row-number">9</span><span class="service-name">Face Waxing</span><input type="number" class="quantity-input" value="0" min="0" name="service9" /></div>
+            <div class="service-row"><span class="row-number">10</span><span class="service-name">Hair Treatment</span><input type="number" class="quantity-input" value="0" min="0" name="service10" /></div>
+          </div>
+        </div>
 
-        // Handle form submission
-        document.getElementById('servicesForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form data
-            const date = document.getElementById('reportDate').value;
-            const services = [];
-            const serviceNames = [
-                'Facial Scrub', 'Nail Polish', 'Hair Relaxing', 'Pedicure', 'Manicure',
-                'Hair Wash & Blow Dry', 'Braiding', 'Gel Polish', 'Face Waxing', 'Hair Treatment'
-            ];
-            
-            // Collect quantities
-            for (let i = 1; i <= 10; i++) {
-                const quantity = document.querySelector(`input[name="service${i}"]`).value;
-                if (quantity > 0) {
-                    services.push(`${serviceNames[i-1]}: ${quantity}`);
-                }
-            }
-            
-            // Show success message
-            let message = `✅ Submitted successfully!\n\nDate: ${date}`;
-            if (services.length > 0) {
-                message += `\n\nServices recorded:\n${services.join('\n')}`;
-            } else {
-                message += '\n\nNo services recorded for this date.';
-            }
-            
-            alert(message);
+        <div class="submit-section">
+          <button type="submit" class="submit-btn">📤 Submit Day's Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer">
+    © 2025 SalonSmart – Private Use Only
+  </footer>
+
+  <script>
+    // Auto-fill today's date
+    document.addEventListener('DOMContentLoaded', function () {
+      const today = new Date();
+      const dateString = today.getFullYear() + '-' +
+        String(today.getMonth() + 1).padStart(2, '0') + '-' +
+        String(today.getDate()).padStart(2, '0');
+      document.getElementById('reportDate').value = dateString;
+    });
+
+    // Submit to Google Sheets via Web App
+    document.getElementById('servicesForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const date = document.getElementById('reportDate').value;
+      const data = {
+        "Date": date,
+        "Facial Scrub": Number(document.querySelector('input[name="service1"]').value || 0),
+        "Nail Polish": Number(document.querySelector('input[name="service2"]').value || 0),
+        "Hair Relaxing": Number(document.querySelector('input[name="service3"]').value || 0),
+        "Pedicure": Number(document.querySelector('input[name="service4"]').value || 0),
+        "Manicure": Number(document.querySelector('input[name="service5"]').value || 0),
+        "Hair Wash & Blow Dry": Number(document.querySelector('input[name="service6"]').value || 0),
+        "Braiding": Number(document.querySelector('input[name="service7"]').value || 0),
+        "Gel Polish": Number(document.querySelector('input[name="service8"]').value || 0),
+        "Face Waxing": Number(document.querySelector('input[name="service9"]').value || 0),
+        "Hair Treatment": Number(document.querySelector('input[name="service10"]').value || 0)
+      };
+
+      fetch("https://script.google.com/macros/s/AKfycbwKsoDS1mXAO_DJEvPfbLXerdLZ-E98Q9ao-vYbbN6Jp8zJmWiMb2QL3uBhKUYfb4OpRA/exec", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === "success") {
+            alert("✅ Submitted successfully!");
+            document.getElementById('servicesForm').reset();
+          } else {
+            alert("⚠️ Submission failed.");
+          }
+        })
+        .catch(err => {
+          alert("❌ Could not submit. Check console.");
+          console.error(err);
         });
-    </script>
+    });
+  </script>
 </body>
 </html>
