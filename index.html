@@ -1,288 +1,321 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Download } from 'lucide-react';
 
-const BarSalesEntry = () => {
-  const [formData, setFormData] = useState({
-    date: '2024-04-23',
-    shift: 'Morning',
-    waiterName: 'John',
-    items: [{ name: 'Beer', quantity: 2, price: 300 }],
-    cashInHand: '',
-    mpesaReceived: ''
-  });
-
-  // Pre-loaded Kenyan bar drinks with prices in KES
-  const drinkOptions = [
-    { name: 'Tusker Beer', price: 300 },
-    { name: 'White Cap Beer', price: 280 },
-    { name: 'Pilsner Beer', price: 280 },
-    { name: 'Guinness', price: 350 },
-    { name: 'Heineken', price: 400 },
-    { name: 'Corona', price: 450 },
-    { name: 'Vodka Shot', price: 200 },
-    { name: 'Whiskey Shot', price: 300 },
-    { name: 'Gin & Tonic', price: 400 },
-    { name: 'Wine Glass (Red)', price: 500 },
-    { name: 'Wine Glass (White)', price: 500 },
-    { name: 'Cocktail', price: 600 },
-    { name: 'Soda (Coke)', price: 120 },
-    { name: 'Soda (Fanta)', price: 120 },
-    { name: 'Water Bottle', price: 100 },
-    { name: 'Energy Drink', price: 200 },
-    { name: 'Coffee', price: 150 },
-    { name: 'Tea', price: 100 }
-  ];
-
-  const shiftOptions = ['Morning', 'Afternoon', 'Evening', 'Night'];
-
-  const calculateItemTotal = (item) => {
-    return (item.quantity || 0) * (item.price || 0);
-  };
-
-  const calculateGrandTotal = () => {
-    return formData.items.reduce((total, item) => total + calculateItemTotal(item), 0);
-  };
-
-  const addItem = () => {
-    setFormData(prev => ({
-      ...prev,
-      items: [...prev.items, { name: '', quantity: 0, price: 0 }]
-    }));
-  };
-
-  const removeItem = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      items: prev.items.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateItem = (index, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      items: prev.items.map((item, i) => {
-        if (i === index) {
-          if (field === 'name') {
-            const selectedDrink = drinkOptions.find(drink => drink.name === value);
-            return {
-              ...item,
-              name: value,
-              price: selectedDrink ? selectedDrink.price : 0
-            };
-          }
-          return { ...item, [field]: value };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SalonSmart - Daily Services Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        return item;
-      })
-    }));
-  };
 
-  const updateFormField = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-  const generateExcelData = () => {
-    const grandTotal = calculateGrandTotal();
-    const cashAmount = parseFloat(formData.cashInHand) || 0;
-    const mpesaAmount = parseFloat(formData.mpesaReceived) || 0;
-    const totalReceived = cashAmount + mpesaAmount;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
 
-    const excelData = {
-      date: formData.date,
-      shift: formData.shift,
-      waiter: formData.waiterName,
-      items: formData.items.map(item => ({
-        item: item.name,
-        quantity: item.quantity,
-        unitPrice: item.price,
-        total: calculateItemTotal(item)
-      })),
-      salesTotal: grandTotal,
-      cashInHand: cashAmount,
-      mpesaReceived: mpesaAmount,
-      totalReceived: totalReceived,
-      difference: totalReceived - grandTotal
-    };
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
 
-    return excelData;
-  };
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
 
-  const exportToExcel = () => {
-    const data = generateExcelData();
-    const jsonString = JSON.stringify(data, null, 2);
-    
-    // Create downloadable file
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `bar-sales-${data.date}-${data.shift}-${data.waiter}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
 
-    alert('Sales data exported! Import this JSON file into Excel or convert to CSV format.');
-  };
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
 
-  const handleSubmit = () => {
-    exportToExcel();
-  };
+        .date-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
 
-  return (
-    <div className="max-w-4xl mx-auto p-6 bg-white">
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">Daily Bar Sales Entry</h1>
-        
-        <div className="space-y-6">
-          {/* Date and Shift Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-              <div className="relative">
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => updateFormField('date', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                />
-                <Calendar className="absolute right-3 top-3 h-5 w-5 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Shift</label>
-              <select
-                value={formData.shift}
-                onChange={(e) => updateFormField('shift', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent appearance-none bg-white"
-              >
-                {shiftOptions.map(shift => (
-                  <option key={shift} value={shift}>{shift}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+        .date-label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
 
-          {/* Waiter Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Waiter Name</label>
-            <input
-              type="text"
-              value={formData.waiterName}
-              onChange={(e) => updateFormField('waiterName', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              placeholder="Enter waiter name"
-            />
-          </div>
+        .date-input {
+            width: 200px;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
 
-          {/* Items Section */}
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-700">Items Sold</h3>
-              <button
-                type="button"
-                onClick={addItem}
-                className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-                Add Item
-              </button>
-            </div>
+        .date-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
 
-            <div className="space-y-4">
-              {formData.items.map((item, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 bg-white border border-gray-200 rounded-lg">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Item</label>
-                    <select
-                      value={item.name}
-                      onChange={(e) => updateItem(index, 'name', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    >
-                      <option value="">Select drink...</option>
-                      {drinkOptions.map(drink => (
-                        <option key={drink.name} value={drink.name}>
-                          {drink.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={item.quantity || ''}
-                      onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      placeholder="0"
-                    />
-                  </div>
+        .services-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">&nbsp;</label>
-                    <button
-                      onClick={addItem}
-                      className="flex items-center justify-center w-full px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-                      title="Add new item"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        .services-grid {
+            display: grid;
+            gap: 15px;
+        }
 
-          {/* Payment Methods */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Cash in Hand</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.cashInHand}
-                  onChange={(e) => updateFormField('cashInHand', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent pl-12"
-                  placeholder="0.00"
-                />
-                <span className="absolute left-4 top-3 text-gray-500 font-medium">KES</span>
-              </div>
-            </div>
+        .service-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 120px;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            transition: background-color 0.2s ease;
+        }
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">M-Pesa Received</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.mpesaReceived}
-                  onChange={(e) => updateFormField('mpesaReceived', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent pl-12"
-                  placeholder="0.00"
-                />
-                <span className="absolute left-4 top-3 text-gray-500 font-medium">KES</span>
-              </div>
-            </div>
-          </div>
+        .service-row:hover {
+            background: #e8f4fd;
+        }
 
-          {/* Submit Button */}
-          <button
-            onClick={handleSubmit}
-            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-teal-600 text-white text-lg font-semibold rounded-lg hover:bg-teal-700 transition-colors"
-          >
-            <Download className="h-5 w-5" />
-            Submit & Export to Excel
-          </button>
+        .row-number {
+            font-weight: 600;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .service-name {
+            font-weight: 500;
+            color: #2c3e50;
+            padding-left: 15px;
+        }
+
+        .quantity-input {
+            width: 80px;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            transition: border-color 0.3s ease;
+        }
+
+        .quantity-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .submit-section {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ecf0f1;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #2980b9, #21618c);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+            background: white;
+            border-top: 1px solid #ecf0f1;
+            margin-top: auto;
+        }
+
+        /* Remove spinner arrows from number inputs */
+        .quantity-input::-webkit-outer-spin-button,
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .quantity-input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SalonSmart</h1>
+            <p>Daily Services Report</p>
         </div>
-      </div>
-    </div>
-  );
-};
 
-export default BarSalesEntry;
+        <div class="form-container">
+            <form id="servicesForm">
+                <!-- Date Section -->
+                <div class="date-section">
+                    <label class="date-label" for="reportDate">📅 Date</label>
+                    <input type="date" id="reportDate" class="date-input" required>
+                </div>
+
+                <!-- Services Section -->
+                <div class="services-section">
+                    <h2>📋 Service Quantities</h2>
+                    <div class="services-grid">
+                        <div class="service-row">
+                            <span class="row-number">1</span>
+                            <span class="service-name">Facial Scrub</span>
+                            <input type="number" class="quantity-input" value="0" min="0" name="service1">
+                        </div>
+                        <div class="service-row">
+                            <span class="row-number">2</span>
+                            <span class="service-name">Nail Polish</span>
+                            <input type="number" class="quantity-input" value="0" min="0" name="service2">
+                        </div>
+                        <div class="service-row">
+                            <span class="row-number">3</span>
+                            <span class="service-name">Hair Relaxing</span>
+                            <input type="number" class="quantity-input" value="0" min="0" name="service3">
+                        </div>
+                        <div class="service-row">
+                            <span class="row-number">4</span>
+                            <span class="service-name">Pedicure</span>
+                            <input type="number" class="quantity-input" value="0" min="0" name="service4">
+                        </div>
+                        <div class="service-row">
+                            <span class="row-number">5</span>
+                            <span class="service-name">Manicure</span>
+                            <input type="number" class="quantity-input" value="0" min="0" name="service5">
+                        </div>
+                        <div class="service-row">
+                            <span class="row-number">6</span>
+                            <span class="service-name">Hair Wash & Blow Dry</span>
+                            <input type="number" class="quantity-input" value="0" min="0" name="service6">
+                        </div>
+                        <div class="service-row">
+                            <span class="row-number">7</span>
+                            <span class="service-name">Braiding</span>
+                            <input type="number" class="quantity-input" value="0" min="0" name="service7">
+                        </div>
+                        <div class="service-row">
+                            <span class="row-number">8</span>
+                            <span class="service-name">Gel Polish</span>
+                            <input type="number" class="quantity-input" value="0" min="0" name="service8">
+                        </div>
+                        <div class="service-row">
+                            <span class="row-number">9</span>
+                            <span class="service-name">Face Waxing</span>
+                            <input type="number" class="quantity-input" value="0" min="0" name="service9">
+                        </div>
+                        <div class="service-row">
+                            <span class="row-number">10</span>
+                            <span class="service-name">Hair Treatment</span>
+                            <input type="number" class="quantity-input" value="0" min="0" name="service10">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Section -->
+                <div class="submit-section">
+                    <button type="submit" class="submit-btn">📤 Submit Day's Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        © 2025 SalonSmart – Private Use Only
+    </footer>
+
+    <script>
+        // Set today's date as default
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const dateString = today.getFullYear() + '-' + 
+                             String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                             String(today.getDate()).padStart(2, '0');
+            document.getElementById('reportDate').value = dateString;
+        });
+
+        // Handle form submission
+        document.getElementById('servicesForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const date = document.getElementById('reportDate').value;
+            const services = [];
+            const serviceNames = [
+                'Facial Scrub', 'Nail Polish', 'Hair Relaxing', 'Pedicure', 'Manicure',
+                'Hair Wash & Blow Dry', 'Braiding', 'Gel Polish', 'Face Waxing', 'Hair Treatment'
+            ];
+            
+            // Collect quantities
+            for (let i = 1; i <= 10; i++) {
+                const quantity = document.querySelector(`input[name="service${i}"]`).value;
+                if (quantity > 0) {
+                    services.push(`${serviceNames[i-1]}: ${quantity}`);
+                }
+            }
+            
+            // Show success message
+            let message = `✅ Submitted successfully!\n\nDate: ${date}`;
+            if (services.length > 0) {
+                message += `\n\nServices recorded:\n${services.join('\n')}`;
+            } else {
+                message += '\n\nNo services recorded for this date.';
+            }
+            
+            alert(message);
+        });
+    </script>
+</body>
+</html>
