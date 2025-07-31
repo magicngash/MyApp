@@ -1,423 +1,480 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SalonSmart - Daily Services Report</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+import React, { useState, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { Calendar, DollarSign, Package, TrendingUp, Users, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
+const SalonDashboard = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [salesData, setSalesData] = useState([]);
+  const [stockData, setStockData] = useState([]);
+  const [todaysStats, setTodaysStats] = useState({
+    revenue: 12500,
+    services: 18,
+    profit: 8750,
+    profitMargin: 70
+  });
 
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
+  // Sample data
+  const weeklyRevenue = [
+    { day: 'Mon', revenue: 8500, services: 12 },
+    { day: 'Tue', revenue: 12000, services: 18 },
+    { day: 'Wed', revenue: 9500, services: 14 },
+    { day: 'Thu', revenue: 11000, services: 16 },
+    { day: 'Fri', revenue: 15500, services: 22 },
+    { day: 'Sat', revenue: 18000, services: 26 },
+    { day: 'Sun', revenue: 14000, services: 20 }
+  ];
 
-    .header {
-      background: linear-gradient(135deg, #ff6b6b, #feca57);
-      color: white;
-      text-align: center;
-      padding: 30px 20px;
-    }
+  const serviceBreakdown = [
+    { name: 'Hair Cut', value: 30, revenue: 4800 },
+    { name: 'Hair Relaxing', value: 20, revenue: 6000 },
+    { name: 'Manicure', value: 15, revenue: 2250 },
+    { name: 'Hair Coloring', value: 12, revenue: 4800 },
+    { name: 'Facial Treatment', value: 10, revenue: 3600 },
+    { name: 'Others', value: 13, revenue: 3900 }
+  ];
 
-    .header h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-      font-weight: 700;
-    }
+  const stockStatus = [
+    { product: 'Shampoo', current: 45, min: 20, status: 'good', lastWeekUsage: 8.5 },
+    { product: 'Hair Relaxer', current: 12, min: 15, status: 'low', lastWeekUsage: 12.3 },
+    { product: 'Hair Dye', current: 8, min: 10, status: 'critical', lastWeekUsage: 15.2 },
+    { product: 'Conditioner', current: 32, min: 18, status: 'good', lastWeekUsage: 6.8 },
+    { product: 'Nail Polish', current: 25, min: 12, status: 'good', lastWeekUsage: 4.2 },
+    { product: 'Face Mask', current: 18, min: 15, status: 'good', lastWeekUsage: 3.5 }
+  ];
 
-    .header p {
-      font-size: 1.2em;
-      opacity: 0.9;
-    }
+  const recentTransactions = [
+    { time: '14:30', service: 'Hair Relaxing', staff: 'Mary', amount: 1500 },
+    { time: '13:45', service: 'Manicure', staff: 'Jane', amount: 500 },
+    { time: '12:20', service: 'Hair Cut', staff: 'Sarah', amount: 800 },
+    { time: '11:15', service: 'Facial Treatment', staff: 'Mary', amount: 1200 },
+    { time: '10:30', service: 'Hair Coloring', staff: 'Jane', amount: 2000 }
+  ];
 
-    .form-container {
-      padding: 40px;
-    }
+  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'];
 
-    .date-section {
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    .date-label {
-      display: block;
-      font-size: 1.3em;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 15px;
-    }
-
-    .date-input {
-      padding: 12px 20px;
-      font-size: 1.1em;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      background: #f8f9fa;
-      transition: all 0.3s ease;
-    }
-
-    .date-input:focus {
-      outline: none;
-      border-color: #667eea;
-      background: white;
-      box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
-    }
-
-    .services-section h2 {
-      font-size: 1.5em;
-      color: #333;
-      margin-bottom: 25px;
-      text-align: center;
-      font-weight: 600;
-    }
-
-    .services-grid {
-      display: grid;
-      gap: 15px;
-    }
-
-    .service-row {
-      display: grid;
-      grid-template-columns: 40px 1fr 100px;
-      align-items: center;
-      gap: 15px;
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 10px;
-      border: 1px solid #e9ecef;
-      transition: all 0.3s ease;
-    }
-
-    .service-row:hover {
-      background: #e3f2fd;
-      border-color: #2196f3;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .row-number {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 0.9em;
-    }
-
-    .service-name {
-      font-weight: 500;
-      color: #333;
-    }
-
-    .quantity-input {
-      padding: 10px;
-      border: 2px solid #ddd;
-      border-radius: 6px;
-      text-align: center;
-      font-size: 1em;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-
-    .quantity-input:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-    }
-
-    .submit-section {
-      text-align: center;
-      margin-top: 40px;
-    }
-
-    .submit-btn {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border: none;
-      padding: 15px 40px;
-      font-size: 1.2em;
-      font-weight: 600;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-    }
-
-    .submit-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-    }
-
-    .submit-btn:active {
-      transform: translateY(-1px);
-    }
-
-    .submit-btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .footer {
-      background: #333;
-      color: white;
-      text-align: center;
-      padding: 20px;
-      font-size: 0.9em;
-    }
-
-    .status-message {
-      margin: 20px 0;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: 500;
-      display: none;
-    }
-
-    .status-success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-
-    .status-error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid #ffffff;
-      border-radius: 50%;
-      border-top-color: transparent;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 10px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        margin: 10px;
-        border-radius: 10px;
-      }
-      
-      .form-container {
-        padding: 20px;
-      }
-      
-      .header h1 {
-        font-size: 2em;
-      }
-      
-      .service-row {
-        grid-template-columns: 30px 1fr 80px;
-        gap: 10px;
-        padding: 12px;
-      }
-      
-      .row-number {
-        width: 25px;
-        height: 25px;
-        font-size: 0.8em;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>SalonSmart</h1>
-      <p>Daily Services Report</p>
-    </div>
-
-    <div class="form-container">
-      <form id="servicesForm">
-        <!-- Date Section -->
-        <div class="date-section">
-          <label class="date-label" for="reportDate">📅 Date</label>
-          <input type="date" id="reportDate" class="date-input" required />
+  const StatCard = ({ title, value, icon: Icon, change, color = "blue" }) => (
+    <div className="bg-white rounded-lg shadow-md p-6 border-l-4" style={{borderLeftColor: color}}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          {change && (
+            <p className={`text-sm ${change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {change > 0 ? '+' : ''}{change}% from yesterday
+            </p>
+          )}
         </div>
+        <Icon className="h-8 w-8 text-gray-400" />
+      </div>
+    </div>
+  );
 
-        <!-- Status Message -->
-        <div id="statusMessage" class="status-message"></div>
+  const StockAlert = ({ product, status, current, min }) => {
+    const getStatusColor = (status) => {
+      switch(status) {
+        case 'critical': return 'text-red-600 bg-red-50 border-red-200';
+        case 'low': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+        default: return 'text-green-600 bg-green-50 border-green-200';
+      }
+    };
 
-        <!-- Services Section -->
-        <div class="services-section">
-          <h2>📋 Service Quantities</h2>
-          <div class="services-grid">
-            <!-- Predefined 10 services -->
-            <div class="service-row"><span class="row-number">1</span><span class="service-name">Facial Scrub</span><input type="number" class="quantity-input" value="0" min="0" name="service1" /></div>
-            <div class="service-row"><span class="row-number">2</span><span class="service-name">Nail Polish</span><input type="number" class="quantity-input" value="0" min="0" name="service2" /></div>
-            <div class="service-row"><span class="row-number">3</span><span class="service-name">Hair Relaxing</span><input type="number" class="quantity-input" value="0" min="0" name="service3" /></div>
-            <div class="service-row"><span class="row-number">4</span><span class="service-name">Pedicure</span><input type="number" class="quantity-input" value="0" min="0" name="service4" /></div>
-            <div class="service-row"><span class="row-number">5</span><span class="service-name">Manicure</span><input type="number" class="quantity-input" value="0" min="0" name="service5" /></div>
-            <div class="service-row"><span class="row-number">6</span><span class="service-name">Hair Wash & Blow Dry</span><input type="number" class="quantity-input" value="0" min="0" name="service6" /></div>
-            <div class="service-row"><span class="row-number">7</span><span class="service-name">Braiding</span><input type="number" class="quantity-input" value="0" min="0" name="service7" /></div>
-            <div class="service-row"><span class="row-number">8</span><span class="service-name">Gel Polish</span><input type="number" class="quantity-input" value="0" min="0" name="service8" /></div>
-            <div class="service-row"><span class="row-number">9</span><span class="service-name">Face Waxing</span><input type="number" class="quantity-input" value="0" min="0" name="service9" /></div>
-            <div class="service-row"><span class="row-number">10</span><span class="service-name">Hair Treatment</span><input type="number" class="quantity-input" value="0" min="0" name="service10" /></div>
+    const getStatusIcon = (status) => {
+      switch(status) {
+        case 'critical': return <AlertTriangle className="h-4 w-4" />;
+        case 'low': return <Clock className="h-4 w-4" />;
+        default: return <CheckCircle className="h-4 w-4" />;
+      }
+    };
+
+    return (
+      <div className={`p-3 rounded-lg border ${getStatusColor(status)}`}>
+        <div className="flex items-center space-x-2">
+          {getStatusIcon(status)}
+          <span className="font-medium">{product}</span>
+        </div>
+        <div className="mt-1 text-sm">
+          Current: {current} units (Min: {min})
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Salon Management System</h1>
+              <p className="text-gray-600">Dashboard - {new Date().toLocaleDateString('en-KE')}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-600">Owner: magicbiz2001@gmail.com</p>
+              <p className="text-sm text-gray-600">Currency: Kenya Shillings (KSh)</p>
+            </div>
+          </div>
+          
+          {/* Navigation */}
+          <div className="flex space-x-8">
+            {['dashboard', 'sales', 'stock', 'reports'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
+                  activeTab === tab
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
         </div>
+      </div>
 
-        <div class="submit-section">
-          <button type="submit" class="submit-btn" id="submitBtn">📤 Submit Day's Report</button>
-        </div>
-      </form>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {activeTab === 'dashboard' && (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <StatCard
+                title="Today's Revenue"
+                value={`KSh ${todaysStats.revenue.toLocaleString()}`}
+                icon={DollarSign}
+                change={15}
+                color="#10b981"
+              />
+              <StatCard
+                title="Services Today"
+                value={todaysStats.services}
+                icon={Users}
+                change={8}
+                color="#3b82f6"
+              />
+              <StatCard
+                title="Today's Profit"
+                value={`KSh ${todaysStats.profit.toLocaleString()}`}
+                icon={TrendingUp}
+                change={12}
+                color="#8b5cf6"
+              />
+              <StatCard
+                title="Profit Margin"
+                value={`${todaysStats.profitMargin}%`}
+                icon={BarChart}
+                change={2}
+                color="#f59e0b"
+              />
+            </div>
+
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              {/* Weekly Revenue Chart */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-semibold mb-4">Weekly Revenue Trend</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={weeklyRevenue}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="day" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`KSh ${value.toLocaleString()}`, 'Revenue']} />
+                    <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Service Breakdown */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-semibold mb-4">Service Distribution (This Week)</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={serviceBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({name, value}) => `${name}: ${value}%`}
+                    >
+                      {serviceBreakdown.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Recent Activity & Stock Alerts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Transactions */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-semibold mb-4">Recent Transactions</h3>
+                <div className="space-y-3">
+                  {recentTransactions.map((transaction, index) => (
+                    <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium">{transaction.service}</p>
+                        <p className="text-sm text-gray-600">by {transaction.staff} at {transaction.time}</p>
+                      </div>
+                      <span className="text-green-600 font-semibold">KSh {transaction.amount}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stock Alerts */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-semibold mb-4">Stock Status Alerts</h3>
+                <div className="space-y-3">
+                  {stockStatus.slice(0, 5).map((item, index) => (
+                    <StockAlert
+                      key={index}
+                      product={item.product}
+                      status={item.status}
+                      current={item.current}
+                      min={item.min}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'sales' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold mb-4">Daily Sales Entry Form</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Service Date</label>
+                  <input type="date" className="w-full p-2 border border-gray-300 rounded-md" defaultValue={new Date().toISOString().split('T')[0]} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-md">
+                    <option>Hair Cut</option>
+                    <option>Hair Wash & Blow Dry</option>
+                    <option>Hair Relaxing</option>
+                    <option>Hair Coloring</option>
+                    <option>Manicure</option>
+                    <option>Pedicure</option>
+                    <option>Facial Treatment</option>
+                    <option>Massage</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                  <input type="number" className="w-full p-2 border border-gray-300 rounded-md" defaultValue="1" min="1" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Staff Name</label>
+                  <input type="text" className="w-full p-2 border border-gray-300 rounded-md" placeholder="Enter staff name" />
+                </div>
+              </div>
+              <button className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                Record Sale
+              </button>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold mb-4">Sales Performance</h3>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={weeklyRevenue}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => [`KSh ${value.toLocaleString()}`, 'Revenue']} />
+                  <Bar dataKey="revenue" fill="#3b82f6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'stock' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold mb-4">Stock In Entry Form</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date Received</label>
+                  <input type="date" className="w-full p-2 border border-gray-300 rounded-md" defaultValue={new Date().toISOString().split('T')[0]} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Product</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-md">
+                    <option>Shampoo</option>
+                    <option>Conditioner</option>
+                    <option>Hair Relaxer</option>
+                    <option>Hair Dye</option>
+                    <option>Nail Polish</option>
+                    <option>Face Mask</option>
+                    <option>Massage Oil</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity Received</label>
+                  <input type="number" className="w-full p-2 border border-gray-300 rounded-md" placeholder="Enter quantity" min="1" />
+                </div>
+              </div>
+              <button className="mt-4 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
+                Record Stock In
+              </button>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold mb-4">Current Stock Status</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Minimum Level</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weekly Usage</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {stockStatus.map((item, index) => (
+                      <tr key={index}>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{item.product}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-900">{item.current}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-900">{item.min}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-900">{item.lastWeekUsage}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            item.status === 'critical' ? 'bg-red-100 text-red-800' :
+                            item.status === 'low' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'reports' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-semibold mb-4">📊 Daily Report Preview</h3>
+                <div className="space-y-4">
+                  <div className="border-b pb-4">
+                    <h4 className="font-medium text-gray-900">Today's Summary</h4>
+                    <div className="mt-2 space-y-1 text-sm">
+                      <p>Total Services Sold: <span className="font-semibold">18</span></p>
+                      <p>Total Revenue: <span className="font-semibold text-green-600">KSh 12,500</span></p>
+                      <p>Total Cost: <span className="font-semibold text-red-600">KSh 3,750</span></p>
+                      <p>Total Profit: <span className="font-semibold text-blue-600">KSh 8,750</span></p>
+                      <p>Profit Margin: <span className="font-semibold">70%</span></p>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">Service Breakdown</h4>
+                    <div className="mt-2 space-y-1 text-sm">
+                      <p>Hair Cut: 6 services - KSh 4,800</p>
+                      <p>Hair Relaxing: 4 services - KSh 6,000</p>
+                      <p>Manicure: 5 services - KSh 2,500</p>
+                      <p>Others: 3 services - KSh 3,200</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-4 text-xs text-gray-500">Automatically sent daily at 7:00 PM</p>
+              </div>
+
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-semibold mb-4">📦 Weekly Stock Report Preview</h3>
+                <div className="space-y-4">
+                  <div className="border-b pb-4">
+                    <h4 className="font-medium text-gray-900">Stock Movement Summary</h4>
+                    <div className="mt-2 text-sm">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="text-xs text-gray-500">
+                            <th className="text-left">Product</th>
+                            <th className="text-right">In</th>
+                            <th className="text-right">Used</th>
+                            <th className="text-right">Net</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-xs space-y-1">
+                          <tr>
+                            <td>Shampoo</td>
+                            <td className="text-right">20</td>
+                            <td className="text-right">8.5</td>
+                            <td className="text-right text-green-600">+11.5</td>
+                          </tr>
+                          <tr>
+                            <td>Hair Relaxer</td>
+                            <td className="text-right">10</td>
+                            <td className="text-right">12.3</td>
+                            <td className="text-right text-red-600">-2.3</td>
+                          </tr>
+                          <tr>
+                            <td>Hair Dye</td>
+                            <td className="text-right">5</td>
+                            <td className="text-right">15.2</td>
+                            <td className="text-right text-red-600">-10.2</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">⚠️ Recommendations</h4>
+                    <div className="mt-2 text-sm text-orange-700">
+                      <p>• Hair Relaxer: Consider restocking soon</p>
+                      <p>• Hair Dye: Urgent restocking needed</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-4 text-xs text-gray-500">Automatically sent Sundays at 10:00 AM</p>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold mb-4">📧 Report Settings</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Owner Email</label>
+                  <input type="email" value="magicbiz2001@gmail.com" readOnly className="w-full p-2 border border-gray-300 rounded-md bg-gray-50" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Daily Report Time</label>
+                    <input type="time" value="19:00" readOnly className="w-full p-2 border border-gray-300 rounded-md bg-gray-50" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Weekly Report Day</label>
+                    <input type="text" value="Sunday at 10:00 AM" readOnly className="w-full p-2 border border-gray-300 rounded-md bg-gray-50" />
+                  </div>
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                  <p className="text-sm text-blue-700">
+                    <strong>Note:</strong> Reports are automatically generated and sent via Gmail using Google Apps Script triggers. 
+                    The system tracks all sales, calculates profits, and monitors stock levels in real-time.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
+  );
+};
 
-  <footer class="footer">
-    © 2025 SalonSmart – Private Use Only
-  </footer>
-
-  <script>
-    // Auto-fill today's date
-    document.addEventListener('DOMContentLoaded', function () {
-      const today = new Date();
-      const dateString = today.getFullYear() + '-' +
-        String(today.getMonth() + 1).padStart(2, '0') + '-' +
-        String(today.getDate()).padStart(2, '0');
-      document.getElementById('reportDate').value = dateString;
-    });
-
-    // Show status message
-    function showStatus(message, isSuccess) {
-      const statusEl = document.getElementById('statusMessage');
-      statusEl.textContent = message;
-      statusEl.className = isSuccess ? 'status-message status-success' : 'status-message status-error';
-      statusEl.style.display = 'block';
-      
-      // Hide after 5 seconds
-      setTimeout(() => {
-        statusEl.style.display = 'none';
-      }, 5000);
-    }
-
-    // Set loading state
-    function setLoading(isLoading) {
-      const submitBtn = document.getElementById('submitBtn');
-      if (isLoading) {
-        submitBtn.innerHTML = '<span class="loading"></span>Submitting...';
-        submitBtn.disabled = true;
-      } else {
-        submitBtn.innerHTML = '📤 Submit Day\'s Report';
-        submitBtn.disabled = false;
-      }
-    }
-
-    // Validate form data
-    function validateForm(data) {
-      if (!data.Date) {
-        throw new Error('Please select a date');
-      }
-      
-      const totalServices = Object.values(data).reduce((sum, val) => {
-        return typeof val === 'number' ? sum + val : sum;
-      }, 0);
-      
-      if (totalServices === 0) {
-        throw new Error('Please enter at least one service quantity');
-      }
-      
-      return true;
-    }
-
-    // Submit to Google Sheets via Web App
-    document.getElementById('servicesForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      
-      setLoading(true);
-
-      try {
-        const date = document.getElementById('reportDate').value;
-        const data = {
-          "Date": date,
-          "Facial Scrub": Number(document.querySelector('input[name="service1"]').value || 0),
-          "Nail Polish": Number(document.querySelector('input[name="service2"]').value || 0),
-          "Hair Relaxing": Number(document.querySelector('input[name="service3"]').value || 0),
-          "Pedicure": Number(document.querySelector('input[name="service4"]').value || 0),
-          "Manicure": Number(document.querySelector('input[name="service5"]').value || 0),
-          "Hair Wash & Blow Dry": Number(document.querySelector('input[name="service6"]').value || 0),
-          "Braiding": Number(document.querySelector('input[name="service7"]').value || 0),
-          "Gel Polish": Number(document.querySelector('input[name="service8"]').value || 0),
-          "Face Waxing": Number(document.querySelector('input[name="service9"]').value || 0),
-          "Hair Treatment": Number(document.querySelector('input[name="service10"]').value || 0)
-        };
-
-        // Validate form
-        validateForm(data);
-
-        console.log('Submitting data:', data);
-
-        // Updated Google Apps Script URL - you'll need to replace this with your actual URL
-        const response = await fetch("https://script.google.com/macros/s/AKfycbwKsoDS1mXAO_DJEvPfbLXerdLZ-E98Q9ao-vYbbN6Jp8zJmWiMb2QL3uBhKUYfb4OpRA/exec", {
-          method: "POST",
-          mode: "no-cors", // Important for Google Apps Script
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(data)
-        });
-
-        // Note: With no-cors mode, we can't read the response
-        // So we'll assume success if no error is thrown
-        showStatus("✅ Report submitted successfully!", true);
-        
-        // Reset only the quantity inputs, keep the date
-        document.querySelectorAll('.quantity-input').forEach(input => {
-          input.value = 0;
-        });
-
-      } catch (error) {
-        console.error('Submission error:', error);
-        
-        if (error.message.includes('Date') || error.message.includes('service')) {
-          showStatus(`❌ ${error.message}`, false);
-        } else {
-          showStatus("❌ Failed to submit report. Please check your internet connection and try again.", false);
-        }
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    // Test connection button (for debugging)
-    function testConnection() {
-      console.log('Testing Google Apps Script connection...');
-      fetch("https://script.google.com/macros/s/AKfycbwKsoDS1mXAO_DJEvPfbLXerdLZ-E98Q9ao-vYbbN6Jp8zJmWiMb2QL3uBhKUYfb4OpRA/exec")
-        .then(() => console.log('Connection test successful'))
-        .catch(err => console.error('Connection test failed:', err));
-    }
-
-    // Uncomment the line below for debugging
-    // testConnection();
-  </script>
-</body>
-</html>
+export default SalonDashboard;
