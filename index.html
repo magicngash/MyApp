@@ -1,480 +1,596 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Calendar, DollarSign, Package, TrendingUp, Users, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabinet Cutting List Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <style>
+        /* Tailwind CSS CDN styles */
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css');
+        
+        .bg-orange-50 { background-color: #fff7ed; }
+        .text-orange-800 { color: #9a3412; }
+        .bg-blue-50 { background-color: #eff6ff; }
+        .text-blue-800 { color: #1e40af; }
+        .bg-green-50 { background-color: #f0fdf4; }
+        .text-green-800 { color: #166534; }
+        .bg-purple-50 { background-color: #faf5ff; }
+        .text-purple-800 { color: #6b21a8; }
+        .text-blue-600 { color: #2563eb; }
+        
+        .hidden { display: none; }
+        .block { display: block; }
+        
+        input[type="number"], input[type="text"], select {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+        }
+        
+        input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+        
+        button {
+            transition: background-color 0.15s ease-in-out;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        .scrollable-results {
+            max-height: 24rem;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-6xl mx-auto p-6">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">
+                Cabinet Cutting List Generator
+            </h1>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Input Panel -->
+                <div class="space-y-6">
+                    <!-- Basic Information -->
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h2 class="text-lg font-semibold mb-4 text-blue-800">Basic Cabinet Information</h2>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Cabinet Type:</label>
+                                <select id="cabinetType" class="w-full p-2 border rounded-md">
+                                    <option value="base">Base Cabinet</option>
+                                    <option value="top">Top Cabinet</option>
+                                    <option value="wardrobe">Wardrobe</option>
+                                </select>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Width (mm):</label>
+                                    <input type="number" id="width" value="600" class="w-full p-2 border rounded-md">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Height (mm):</label>
+                                    <input type="number" id="height" value="900" class="w-full p-2 border rounded-md">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Depth (mm):</label>
+                                    <input type="number" id="depth" value="500" class="w-full p-2 border rounded-md">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="includeBackPanel" checked class="mr-2">
+                                    Include Back Panel
+                                </label>
+                            </div>
+                        </div>
+                    </div>
 
-const SalonDashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [salesData, setSalesData] = useState([]);
-  const [stockData, setStockData] = useState([]);
-  const [todaysStats, setTodaysStats] = useState({
-    revenue: 12500,
-    services: 18,
-    profit: 8750,
-    profitMargin: 70
-  });
+                    <!-- Door Configuration -->
+                    <div class="bg-orange-50 p-4 rounded-lg">
+                        <h2 class="text-lg font-semibold mb-4 text-orange-800">Door Configuration</h2>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="hasDoors" checked class="mr-2" onchange="toggleDoorOptions()">
+                                    Include Doors
+                                </label>
+                            </div>
+                            
+                            <div id="doorOptions" class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Door Style:</label>
+                                    <select id="doorStyle" class="w-full p-2 border rounded-md">
+                                        <option value="overlay">Full Overlay</option>
+                                        <option value="partial_overlay">Partial Overlay</option>
+                                        <option value="inset">Inset</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Number of Doors:</label>
+                                    <input type="number" id="doorCount" value="2" min="1" max="4" class="w-20 p-2 border rounded-md" onchange="toggleDoorGap()">
+                                </div>
+                                
+                                <div id="doorGapContainer">
+                                    <label class="block text-sm font-medium mb-1">Gap Between Doors (mm):</label>
+                                    <input type="number" id="doorGap" value="2" min="1" max="10" class="w-20 p-2 border rounded-md">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-  // Sample data
-  const weeklyRevenue = [
-    { day: 'Mon', revenue: 8500, services: 12 },
-    { day: 'Tue', revenue: 12000, services: 18 },
-    { day: 'Wed', revenue: 9500, services: 14 },
-    { day: 'Thu', revenue: 11000, services: 16 },
-    { day: 'Fri', revenue: 15500, services: 22 },
-    { day: 'Sat', revenue: 18000, services: 26 },
-    { day: 'Sun', revenue: 14000, services: 20 }
-  ];
+                    <!-- Drawer Configuration -->
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h2 class="text-lg font-semibold mb-4 text-green-800">Drawer Configuration</h2>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="hasDrawers" class="mr-2" onchange="toggleDrawerOptions()">
+                                    Include Drawers
+                                </label>
+                            </div>
+                            
+                            <div id="drawerOptions" class="hidden space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Number of Drawers:</label>
+                                    <input type="number" id="drawerCount" value="3" min="1" class="w-20 p-2 border rounded-md">
+                                </div>
+                                
+                                <div>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="splitColumns" class="mr-2">
+                                        Split into Columns
+                                    </label>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Custom Heights (comma-separated):</label>
+                                    <input type="text" id="customHeights" placeholder="e.g., 200, 150, 180" class="w-full p-2 border rounded-md">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-  const serviceBreakdown = [
-    { name: 'Hair Cut', value: 30, revenue: 4800 },
-    { name: 'Hair Relaxing', value: 20, revenue: 6000 },
-    { name: 'Manicure', value: 15, revenue: 2250 },
-    { name: 'Hair Coloring', value: 12, revenue: 4800 },
-    { name: 'Facial Treatment', value: 10, revenue: 3600 },
-    { name: 'Others', value: 13, revenue: 3900 }
-  ];
+                    <!-- Shelf Configuration -->
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h2 class="text-lg font-semibold mb-4 text-purple-800">Shelf Configuration</h2>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="hasShelves" class="mr-2" onchange="toggleShelfOptions()">
+                                    Include Shelves
+                                </label>
+                            </div>
+                            
+                            <div id="shelfOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-1">Number of Shelves:</label>
+                                <input type="number" id="shelfCount" value="1" min="0" class="w-20 p-2 border rounded-md">
+                            </div>
+                        </div>
+                    </div>
 
-  const stockStatus = [
-    { product: 'Shampoo', current: 45, min: 20, status: 'good', lastWeekUsage: 8.5 },
-    { product: 'Hair Relaxer', current: 12, min: 15, status: 'low', lastWeekUsage: 12.3 },
-    { product: 'Hair Dye', current: 8, min: 10, status: 'critical', lastWeekUsage: 15.2 },
-    { product: 'Conditioner', current: 32, min: 18, status: 'good', lastWeekUsage: 6.8 },
-    { product: 'Nail Polish', current: 25, min: 12, status: 'good', lastWeekUsage: 4.2 },
-    { product: 'Face Mask', current: 18, min: 15, status: 'good', lastWeekUsage: 3.5 }
-  ];
+                    <button onclick="generateCuttingList()" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700">
+                        Generate Cutting List
+                    </button>
+                </div>
 
-  const recentTransactions = [
-    { time: '14:30', service: 'Hair Relaxing', staff: 'Mary', amount: 1500 },
-    { time: '13:45', service: 'Manicure', staff: 'Jane', amount: 500 },
-    { time: '12:20', service: 'Hair Cut', staff: 'Sarah', amount: 800 },
-    { time: '11:15', service: 'Facial Treatment', staff: 'Mary', amount: 1200 },
-    { time: '10:30', service: 'Hair Coloring', staff: 'Jane', amount: 2000 }
-  ];
-
-  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'];
-
-  const StatCard = ({ title, value, icon: Icon, change, color = "blue" }) => (
-    <div className="bg-white rounded-lg shadow-md p-6 border-l-4" style={{borderLeftColor: color}}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          {change && (
-            <p className={`text-sm ${change > 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {change > 0 ? '+' : ''}{change}% from yesterday
-            </p>
-          )}
+                <!-- Results Panel -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold mb-4 text-gray-800">Cutting List Results</h2>
+                    
+                    <div id="resultsContainer" class="text-center text-gray-500 py-8">
+                        <p>Configure your cabinet specifications and click "Generate Cutting List" to see results</p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <Icon className="h-8 w-8 text-gray-400" />
-      </div>
     </div>
-  );
 
-  const StockAlert = ({ product, status, current, min }) => {
-    const getStatusColor = (status) => {
-      switch(status) {
-        case 'critical': return 'text-red-600 bg-red-50 border-red-200';
-        case 'low': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-        default: return 'text-green-600 bg-green-50 border-green-200';
-      }
-    };
+    <script>
+        // Toggle functions for UI
+        function toggleDoorOptions() {
+            const hasDoors = document.getElementById('hasDoors').checked;
+            const doorOptions = document.getElementById('doorOptions');
+            doorOptions.style.display = hasDoors ? 'block' : 'none';
+            toggleDoorGap();
+        }
 
-    const getStatusIcon = (status) => {
-      switch(status) {
-        case 'critical': return <AlertTriangle className="h-4 w-4" />;
-        case 'low': return <Clock className="h-4 w-4" />;
-        default: return <CheckCircle className="h-4 w-4" />;
-      }
-    };
+        function toggleDoorGap() {
+            const doorCount = parseInt(document.getElementById('doorCount').value);
+            const doorGapContainer = document.getElementById('doorGapContainer');
+            doorGapContainer.style.display = doorCount > 1 ? 'block' : 'none';
+        }
 
-    return (
-      <div className={`p-3 rounded-lg border ${getStatusColor(status)}`}>
-        <div className="flex items-center space-x-2">
-          {getStatusIcon(status)}
-          <span className="font-medium">{product}</span>
-        </div>
-        <div className="mt-1 text-sm">
-          Current: {current} units (Min: {min})
-        </div>
-      </div>
-    );
-  };
+        function toggleDrawerOptions() {
+            const hasDrawers = document.getElementById('hasDrawers').checked;
+            const drawerOptions = document.getElementById('drawerOptions');
+            drawerOptions.className = hasDrawers ? 'block space-y-3' : 'hidden space-y-3';
+        }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Salon Management System</h1>
-              <p className="text-gray-600">Dashboard - {new Date().toLocaleDateString('en-KE')}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Owner: magicbiz2001@gmail.com</p>
-              <p className="text-sm text-gray-600">Currency: Kenya Shillings (KSh)</p>
-            </div>
-          </div>
-          
-          {/* Navigation */}
-          <div className="flex space-x-8">
-            {['dashboard', 'sales', 'stock', 'reports'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
-                  activeTab === tab
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+        function toggleShelfOptions() {
+            const hasShelves = document.getElementById('hasShelves').checked;
+            const shelfOptions = document.getElementById('shelfOptions');
+            shelfOptions.className = hasShelves ? 'block' : 'hidden';
+        }
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'dashboard' && (
-          <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatCard
-                title="Today's Revenue"
-                value={`KSh ${todaysStats.revenue.toLocaleString()}`}
-                icon={DollarSign}
-                change={15}
-                color="#10b981"
-              />
-              <StatCard
-                title="Services Today"
-                value={todaysStats.services}
-                icon={Users}
-                change={8}
-                color="#3b82f6"
-              />
-              <StatCard
-                title="Today's Profit"
-                value={`KSh ${todaysStats.profit.toLocaleString()}`}
-                icon={TrendingUp}
-                change={12}
-                color="#8b5cf6"
-              />
-              <StatCard
-                title="Profit Margin"
-                value={`${todaysStats.profitMargin}%`}
-                icon={BarChart}
-                change={2}
-                color="#f59e0b"
-              />
-            </div>
+        // Initialize UI
+        toggleDoorOptions();
+        toggleDrawerOptions();
+        toggleShelfOptions();
 
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {/* Weekly Revenue Chart */}
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold mb-4">Weekly Revenue Trend</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={weeklyRevenue}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [`KSh ${value.toLocaleString()}`, 'Revenue']} />
-                    <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+        function generateCuttingList() {
+            // Constants
+            const PANEL_THICKNESS = 18;
+            const BACK_PANEL_THICKNESS = 6;
+            const GROOVE_DEPTH = 6;
+            const DRAWER_CLEARANCE = 2;
+            const DRAWER_DEPTH_REDUCTION = 50;
 
-              {/* Service Breakdown */}
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold mb-4">Service Distribution (This Week)</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={serviceBreakdown}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({name, value}) => `${name}: ${value}%`}
-                    >
-                      {serviceBreakdown.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+            // Get input values
+            const cabinetData = {
+                type: document.getElementById('cabinetType').value,
+                width: parseInt(document.getElementById('width').value),
+                height: parseInt(document.getElementById('height').value),
+                depth: parseInt(document.getElementById('depth').value),
+                include_back_panel: document.getElementById('includeBackPanel').checked,
+                has_doors: document.getElementById('hasDoors').checked,
+                door_config: {
+                    style: document.getElementById('doorStyle').value,
+                    count: parseInt(document.getElementById('doorCount').value),
+                    gap: parseInt(document.getElementById('doorGap').value)
+                },
+                has_drawers: document.getElementById('hasDrawers').checked,
+                drawer_config: {
+                    count: parseInt(document.getElementById('drawerCount').value),
+                    split_columns: document.getElementById('splitColumns').checked,
+                    custom_heights: document.getElementById('customHeights').value
+                },
+                has_shelves: document.getElementById('hasShelves').checked,
+                shelf_count: parseInt(document.getElementById('shelfCount').value)
+            };
 
-            {/* Recent Activity & Stock Alerts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Recent Transactions */}
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold mb-4">Recent Transactions</h3>
-                <div className="space-y-3">
-                  {recentTransactions.map((transaction, index) => (
-                    <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium">{transaction.service}</p>
-                        <p className="text-sm text-gray-600">by {transaction.staff} at {transaction.time}</p>
-                      </div>
-                      <span className="text-green-600 font-semibold">KSh {transaction.amount}</span>
+            const cutting_list = [];
+            
+            const cabinet_width = cabinetData.width;
+            const cabinet_height = cabinetData.height;
+            const cabinet_depth = cabinetData.depth;
+            const include_back = cabinetData.include_back_panel;
+            
+            const internal_width = cabinet_width - (2 * PANEL_THICKNESS);
+            const groove_reduction = include_back ? GROOVE_DEPTH : 0;
+            
+            // Side Panels
+            const side_depth = cabinet_depth - groove_reduction;
+            cutting_list.push({
+                name: "Side Panel",
+                qty: 2,
+                width: side_depth,
+                height: cabinet_height,
+                notes: include_back ? "Grooved for back panel" : ""
+            });
+            
+            // Top and Bottom Panels
+            const panel_width = internal_width;
+            const panel_depth = cabinet_depth - groove_reduction;
+            
+            cutting_list.push({
+                name: "Top Panel",
+                qty: 1,
+                width: panel_width,
+                depth: panel_depth,
+                notes: include_back ? "Fits between sides, grooved for back panel" : "Fits between sides"
+            });
+            
+            cutting_list.push({
+                name: "Bottom Panel", 
+                qty: 1,
+                width: panel_width,
+                depth: panel_depth,
+                notes: include_back ? "Fits between sides, grooved for back panel" : "Fits between sides"
+            });
+            
+            // Back Panel
+            if (include_back) {
+                const back_panel_width = internal_width + (2 * GROOVE_DEPTH);
+                const back_panel_height = cabinet_height - (2 * PANEL_THICKNESS) + (2 * GROOVE_DEPTH);
+                
+                cutting_list.push({
+                    name: "Back Panel",
+                    qty: 1,
+                    width: back_panel_width,
+                    height: back_panel_height,
+                    thickness: `${BACK_PANEL_THICKNESS}mm`,
+                    notes: "6mm material, fits into grooves"
+                });
+            }
+            
+            let available_height = cabinet_height - (2 * PANEL_THICKNESS);
+            
+            // Drawers
+            if (cabinetData.has_drawers) {
+                const drawer_count = cabinetData.drawer_config.count;
+                const split_columns = cabinetData.drawer_config.split_columns;
+                
+                let drawer_heights = [];
+                if (cabinetData.drawer_config.custom_heights) {
+                    const heights = cabinetData.drawer_config.custom_heights
+                        .split(',')
+                        .map(h => parseInt(h.trim()))
+                        .filter(h => !isNaN(h));
+                    if (heights.length === drawer_count) {
+                        drawer_heights = heights;
+                    }
+                }
+                
+                if (drawer_heights.length === 0) {
+                    const total_gap_height = (drawer_count - 1) * DRAWER_CLEARANCE;
+                    const drawer_height = Math.floor((available_height - total_gap_height) / drawer_count);
+                    drawer_heights = Array(drawer_count).fill(drawer_height);
+                }
+                
+                const drawer_depth = cabinet_depth - DRAWER_DEPTH_REDUCTION;
+                const drawer_internal_depth = drawer_depth - PANEL_THICKNESS;
+                
+                let drawer_width = internal_width;
+                let columns = 1;
+                
+                if (split_columns) {
+                    cutting_list.push({
+                        name: "Center Divider",
+                        qty: 1,
+                        width: cabinet_depth - groove_reduction,
+                        height: available_height,
+                        notes: "Vertical divider for split drawers"
+                    });
+                    
+                    drawer_width = Math.floor((internal_width - PANEL_THICKNESS) / 2);
+                    columns = 2;
+                }
+                
+                drawer_heights.forEach((height, i) => {
+                    const drawer_side_height = height - DRAWER_CLEARANCE;
+                    
+                    for (let col = 0; col < columns; col++) {
+                        const col_suffix = split_columns ? ` Col ${col + 1}` : "";
+                        
+                        cutting_list.push({
+                            name: `Drawer Front #${i + 1}${col_suffix}`,
+                            qty: 1,
+                            width: drawer_width,
+                            height: height,
+                            notes: "External drawer face"
+                        });
+                        
+                        cutting_list.push({
+                            name: `Drawer Back #${i + 1}${col_suffix}`,
+                            qty: 1,
+                            width: drawer_width - (2 * PANEL_THICKNESS),
+                            height: drawer_side_height,
+                            notes: "Fits between drawer sides"
+                        });
+                        
+                        cutting_list.push({
+                            name: `Drawer Side #${i + 1}${col_suffix}`,
+                            qty: 2,
+                            length: drawer_internal_depth,
+                            height: drawer_side_height,
+                            notes: "Grooved for bottom panel"
+                        });
+                        
+                        const bottom_width = drawer_width - (2 * PANEL_THICKNESS) + (2 * GROOVE_DEPTH);
+                        const bottom_depth = drawer_internal_depth + GROOVE_DEPTH;
+                        cutting_list.push({
+                            name: `Drawer Bottom #${i + 1}${col_suffix}`,
+                            qty: 1,
+                            width: bottom_width,
+                            depth: bottom_depth,
+                            thickness: `${BACK_PANEL_THICKNESS}mm`,
+                            notes: "6mm material, sits in grooves"
+                        });
+                    }
+                });
+                
+                const total_drawer_height = drawer_heights.reduce((sum, h) => sum + h, 0) + 
+                                          ((drawer_count - 1) * DRAWER_CLEARANCE);
+                available_height -= total_drawer_height;
+            }
+            
+            // Shelves
+            if (cabinetData.has_shelves && available_height > 0 && cabinetData.shelf_count > 0) {
+                const shelf_width = internal_width - 4;
+                const shelf_depth = cabinet_depth - groove_reduction - 50;
+                
+                cutting_list.push({
+                    name: "Shelf",
+                    qty: cabinetData.shelf_count,
+                    width: shelf_width,
+                    depth: shelf_depth,
+                    notes: "Adjustable shelf, sits 50mm from front"
+                });
+            }
+            
+            // Doors
+            if (cabinetData.has_doors) {
+                const door_style = cabinetData.door_config.style;
+                const door_count = cabinetData.door_config.count;
+                const door_gap = cabinetData.door_config.gap;
+                
+                let door_width, door_height;
+                
+                if (door_style === 'overlay') {
+                    if (door_count === 1) {
+                        door_width = cabinet_width;
+                        door_height = cabinet_height;
+                    } else {
+                        const total_gap_width = (door_count - 1) * door_gap;
+                        door_width = Math.floor((cabinet_width - total_gap_width) / door_count);
+                        door_height = cabinet_height;
+                    }
+                } else if (door_style === 'inset') {
+                    if (door_count === 1) {
+                        door_width = internal_width - 4;
+                        door_height = available_height - 4;
+                    } else {
+                        const total_gap_width = (door_count - 1) * door_gap;
+                        door_width = Math.floor((internal_width - 4 - total_gap_width) / door_count);
+                        door_height = available_height - 4;
+                    }
+                } else { // partial_overlay
+                    const overlay_amount = 6;
+                    if (door_count === 1) {
+                        door_width = internal_width + (2 * overlay_amount);
+                        door_height = available_height + (2 * overlay_amount);
+                    } else {
+                        const total_gap_width = (door_count - 1) * door_gap;
+                        door_width = Math.floor((internal_width + (2 * overlay_amount) - total_gap_width) / door_count);
+                        door_height = available_height + (2 * overlay_amount);
+                    }
+                }
+                
+                cutting_list.push({
+                    name: "Door",
+                    qty: door_count,
+                    width: door_width,
+                    height: door_height,
+                    notes: `${door_style} style, ${door_count === 1 ? 'single' : door_count + ' doors with ' + door_gap + 'mm gaps'}`
+                });
+                
+                const hinges_per_door = door_height > 1200 ? 3 : 2;
+                cutting_list.push({
+                    name: "Door Hinge",
+                    qty: door_count * hinges_per_door,
+                    notes: `${hinges_per_door} hinges per door`
+                });
+                
+                cutting_list.push({
+                    name: "Door Handle",
+                    qty: door_count,
+                    notes: "Door handles or knobs"
+                });
+            }
+            
+            // Wardrobe specific
+            if (cabinetData.type === 'wardrobe' && available_height >= 200) {
+                cutting_list.push({
+                    name: "Hanging Rail",
+                    qty: 1,
+                    length: internal_width - 20,
+                    notes: "25mm diameter hanging rail"
+                });
+                
+                cutting_list.push({
+                    name: "Rail Support Bracket",
+                    qty: 2,
+                    notes: "End-mounted rail brackets"
+                });
+            }
+
+            displayResults(cutting_list, cabinetData);
+        }
+
+        function formatDimensions(part) {
+            const dims = [];
+            if (part.width !== undefined) dims.push(`W:${part.width}`);
+            if (part.height !== undefined) dims.push(`H:${part.height}`);
+            if (part.depth !== undefined) dims.push(`D:${part.depth}`);
+            if (part.length !== undefined) dims.push(`L:${part.length}`);
+            return dims.join(' × ') + 'mm';
+        }
+
+        function displayResults(cuttingList, cabinetData) {
+            const container = document.getElementById('resultsContainer');
+            const totalParts = cuttingList.reduce((sum, part) => sum + part.qty, 0);
+            
+            let html = `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded border">
+                        <h3 class="font-bold text-lg mb-2">
+                            ${cabinetData.type.toUpperCase()} CABINET
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Dimensions: ${cabinetData.width}W × ${cabinetData.height}H × ${cabinetData.depth}D mm
+                        </p>
+                        
+                        <div class="space-y-2 scrollable-results">
+                            ${cuttingList.map((part, index) => `
+                                <div class="border-b pb-2 text-sm">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <span class="font-medium">${index + 1}. ${part.name}</span>
+                                            <div class="text-gray-600">
+                                                Qty: ${part.qty} | ${formatDimensions(part)}
+                                                ${part.thickness ? ` (${part.thickness})` : ''}
+                                            </div>
+                                            ${part.notes ? `
+                                                <div class="text-xs text-blue-600 italic">
+                                                    ${part.notes}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="mt-4 pt-4 border-t">
+                            <div class="text-sm font-medium">
+                                SUMMARY: ${cuttingList.length} different parts, ${totalParts} total pieces
+                            </div>
+                            <div class="text-xs text-gray-600">
+                                Material: 18mm panels, 6mm backs/bottoms
+                            </div>
+                        </div>
                     </div>
-                  ))}
+                    
+                    <button onclick="exportResults()" class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
+                        Export to File
+                    </button>
                 </div>
-              </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            // Store current results globally for export
+            window.currentResults = cuttingList;
+            window.currentCabinetData = cabinetData;
+        }
 
-              {/* Stock Alerts */}
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold mb-4">Stock Status Alerts</h3>
-                <div className="space-y-3">
-                  {stockStatus.slice(0, 5).map((item, index) => (
-                    <StockAlert
-                      key={index}
-                      product={item.product}
-                      status={item.status}
-                      current={item.current}
-                      min={item.min}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeTab === 'sales' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold mb-4">Daily Sales Entry Form</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Service Date</label>
-                  <input type="date" className="w-full p-2 border border-gray-300 rounded-md" defaultValue={new Date().toISOString().split('T')[0]} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
-                  <select className="w-full p-2 border border-gray-300 rounded-md">
-                    <option>Hair Cut</option>
-                    <option>Hair Wash & Blow Dry</option>
-                    <option>Hair Relaxing</option>
-                    <option>Hair Coloring</option>
-                    <option>Manicure</option>
-                    <option>Pedicure</option>
-                    <option>Facial Treatment</option>
-                    <option>Massage</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                  <input type="number" className="w-full p-2 border border-gray-300 rounded-md" defaultValue="1" min="1" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Staff Name</label>
-                  <input type="text" className="w-full p-2 border border-gray-300 rounded-md" placeholder="Enter staff name" />
-                </div>
-              </div>
-              <button className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
-                Record Sale
-              </button>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold mb-4">Sales Performance</h3>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={weeklyRevenue}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [`KSh ${value.toLocaleString()}`, 'Revenue']} />
-                  <Bar dataKey="revenue" fill="#3b82f6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'stock' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold mb-4">Stock In Entry Form</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date Received</label>
-                  <input type="date" className="w-full p-2 border border-gray-300 rounded-md" defaultValue={new Date().toISOString().split('T')[0]} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Product</label>
-                  <select className="w-full p-2 border border-gray-300 rounded-md">
-                    <option>Shampoo</option>
-                    <option>Conditioner</option>
-                    <option>Hair Relaxer</option>
-                    <option>Hair Dye</option>
-                    <option>Nail Polish</option>
-                    <option>Face Mask</option>
-                    <option>Massage Oil</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity Received</label>
-                  <input type="number" className="w-full p-2 border border-gray-300 rounded-md" placeholder="Enter quantity" min="1" />
-                </div>
-              </div>
-              <button className="mt-4 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
-                Record Stock In
-              </button>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold mb-4">Current Stock Status</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Minimum Level</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weekly Usage</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {stockStatus.map((item, index) => (
-                      <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{item.product}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-900">{item.current}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-900">{item.min}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-900">{item.lastWeekUsage}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            item.status === 'critical' ? 'bg-red-100 text-red-800' :
-                            item.status === 'low' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-green-100 text-green-800'
-                          }`}>
-                            {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'reports' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold mb-4">📊 Daily Report Preview</h3>
-                <div className="space-y-4">
-                  <div className="border-b pb-4">
-                    <h4 className="font-medium text-gray-900">Today's Summary</h4>
-                    <div className="mt-2 space-y-1 text-sm">
-                      <p>Total Services Sold: <span className="font-semibold">18</span></p>
-                      <p>Total Revenue: <span className="font-semibold text-green-600">KSh 12,500</span></p>
-                      <p>Total Cost: <span className="font-semibold text-red-600">KSh 3,750</span></p>
-                      <p>Total Profit: <span className="font-semibold text-blue-600">KSh 8,750</span></p>
-                      <p>Profit Margin: <span className="font-semibold">70%</span></p>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">Service Breakdown</h4>
-                    <div className="mt-2 space-y-1 text-sm">
-                      <p>Hair Cut: 6 services - KSh 4,800</p>
-                      <p>Hair Relaxing: 4 services - KSh 6,000</p>
-                      <p>Manicure: 5 services - KSh 2,500</p>
-                      <p>Others: 3 services - KSh 3,200</p>
-                    </div>
-                  </div>
-                </div>
-                <p className="mt-4 text-xs text-gray-500">Automatically sent daily at 7:00 PM</p>
-              </div>
-
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold mb-4">📦 Weekly Stock Report Preview</h3>
-                <div className="space-y-4">
-                  <div className="border-b pb-4">
-                    <h4 className="font-medium text-gray-900">Stock Movement Summary</h4>
-                    <div className="mt-2 text-sm">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="text-xs text-gray-500">
-                            <th className="text-left">Product</th>
-                            <th className="text-right">In</th>
-                            <th className="text-right">Used</th>
-                            <th className="text-right">Net</th>
-                          </tr>
-                        </thead>
-                        <tbody className="text-xs space-y-1">
-                          <tr>
-                            <td>Shampoo</td>
-                            <td className="text-right">20</td>
-                            <td className="text-right">8.5</td>
-                            <td className="text-right text-green-600">+11.5</td>
-                          </tr>
-                          <tr>
-                            <td>Hair Relaxer</td>
-                            <td className="text-right">10</td>
-                            <td className="text-right">12.3</td>
-                            <td className="text-right text-red-600">-2.3</td>
-                          </tr>
-                          <tr>
-                            <td>Hair Dye</td>
-                            <td className="text-right">5</td>
-                            <td className="text-right">15.2</td>
-                            <td className="text-right text-red-600">-10.2</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">⚠️ Recommendations</h4>
-                    <div className="mt-2 text-sm text-orange-700">
-                      <p>• Hair Relaxer: Consider restocking soon</p>
-                      <p>• Hair Dye: Urgent restocking needed</p>
-                    </div>
-                  </div>
-                </div>
-                <p className="mt-4 text-xs text-gray-500">Automatically sent Sundays at 10:00 AM</p>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold mb-4">📧 Report Settings</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Owner Email</label>
-                  <input type="email" value="magicbiz2001@gmail.com" readOnly className="w-full p-2 border border-gray-300 rounded-md bg-gray-50" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Daily Report Time</label>
-                    <input type="time" value="19:00" readOnly className="w-full p-2 border border-gray-300 rounded-md bg-gray-50" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Weekly Report Day</label>
-                    <input type="text" value="Sunday at 10:00 AM" readOnly className="w-full p-2 border border-gray-300 rounded-md bg-gray-50" />
-                  </div>
-                </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                  <p className="text-sm text-blue-700">
-                    <strong>Note:</strong> Reports are automatically generated and sent via Gmail using Google Apps Script triggers. 
-                    The system tracks all sales, calculates profits, and monitors stock levels in real-time.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default SalonDashboard;
+        function exportResults() {
+            if (!window.currentResults) {
+                alert('No cutting list to export. Generate a list first.');
+                return;
+            }
+            
+            const content = `CUTTING LIST - ${window.currentCabinetData.type.toUpperCase()} CABINET\n` +
+                `Dimensions: ${window.currentCabinetData.width}W × ${window.currentCabinetData.height}H × ${window.currentCabinetData.depth}D mm\n` +
+                '='.repeat(70) + '\n\n' +
+                window.currentResults.map((part, i) => 
+                    `${i + 1}. ${part.name.padEnd(25)} Qty: ${part.qty.toString().padStart(2)}  ${formatDimensions(part).padEnd(20)}${part.thickness ? ` (${part.thickness})` : ''}${part.notes ? ` - ${part.notes}` : ''}`
+                ).join('\n') +
+                '\n\n' + '='.repeat(70) + '\n' +
+                `SUMMARY: ${window.currentResults.length} different parts, ${window.currentResults.reduce((sum, part) => sum + part.qty, 0)} total pieces\n` +
+                'Material: 18mm panels, 6mm backs/bottoms';
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cutting_list_${window.currentCabinetData.type}_${window.currentCabinetData.width}x${window.currentCabinetData.height}x${window.currentCabinetData.depth}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
